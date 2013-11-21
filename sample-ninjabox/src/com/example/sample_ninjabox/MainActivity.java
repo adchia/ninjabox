@@ -6,11 +6,12 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.sample_ninjabox.util.SystemUiHider;
+
+import edu.mit.ninjabox.NinjaBox;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -32,7 +33,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        NinjaBox.initialize(getWindow());
         setContentView(R.layout.activity_main);
 
         final ImageView bulbasaur = (ImageView) findViewById(R.id.bulbasaur);
