@@ -1,40 +1,122 @@
 package edu.mit.ninjabox;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 
 public class NinjaActivity extends Activity {
 
 	private static boolean _initialized;
 	private static boolean isNinjaMode;
-	private static boolean passwordCorrect = false;
 	private static boolean abortPasswordCheck = false;
-	private static String password = null;
+	private static String correctPassword = null;
+	private static String attemptedPassword = null;
+	private static AlertDialog.Builder passwordPrompt;
+	private static AlertDialog.Builder createPasswordPrompt;
+	private static EditText passwordInput;
 
-	private NinjaActivity() {
-		// Prevent instantiation
+	private enum NINJA_EVENT_TYPE {
+		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
 	}
+	
+	private static final Handler messageHandler = new Handler() {
 
+		public void handleMessage(Message msg) {
+			if (msg.what == NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT.ordinal()) {
+				if (attemptedPassword != null)
+					passwordInput.setText(attemptedPassword);
+				passwordPrompt.setView(passwordInput);
+				passwordPrompt.show();
+			} else if (msg.what == NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT.ordinal()){
+				createPasswordPrompt.setView(passwordInput);
+				createPasswordPrompt.show();
+			} else {
+				Log.e("Handler Error", "Invalid message passed to handler");
+			}
+		}
+	};
+	
 	/*
-	 * Override onCreate to check bundle for ninjaBox options
-	 * and flip our boolean if necessary. Change window preferences.
+	 * Override onCreate to check bundle for ninjaBox options and flip our
+	 * boolean if necessary. Change window preferences.
 	 * 
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+//		savedInstanceState.get("ninjaModeOn");
+		
+		// initialize password dialogs
+		passwordPrompt = new AlertDialog.Builder(this);
+		passwordPrompt.setTitle("Input password");
 
+		// set listener for ok when user inputs password
+		passwordPrompt.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				// save the attempted password
+				attemptedPassword = passwordInput.getText().toString().trim();
+				dialog.dismiss();
+			}
+		});
+
+		// set listener for cancel when user inputs password
+		passwordPrompt.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				dialog.cancel();
+			}
+		});
+		
+		// initialize create password alert dialogs
+		createPasswordPrompt = new AlertDialog.Builder(this);
+		createPasswordPrompt.setTitle("Make a password");
+
+		// set listener for ok when user inputs password
+		createPasswordPrompt.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				// save the correct password
+				correctPassword = passwordInput.getText().toString().trim();
+				dialog.dismiss();
+			}
+		});
+
+		// set listener for cancel when user inputs password
+		createPasswordPrompt.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				isNinjaMode = false;
+				dialog.cancel();
+			}
+		});
 	}
 
-
+	
 	/*
-	 * TODO: change this to be in onCreate
-	 * Forces app to be fullscreen
+	 * 
+	 */
+	public void startNinjaMode() {
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		isNinjaMode = true;
+		showMakePasswordDialog();
+	}
+	
+	public void stopNinjaMode() {
+		// TODO(adchia): change window layout back?
+		isNinjaMode = false;
+	}
+	
+	/*
+	 * TODO: change this to be in onCreate Forces app to be fullscreen
 	 */
 	@Deprecated
 	public static void initialize(Window window) {
@@ -49,39 +131,58 @@ public class NinjaActivity extends Activity {
 
 	/*
 	 * Shows the dialog for entering a user password to launch external intent
-	 * If incorrect, show dialog again with message saying incorrect
-	 * If correct, return true and disable sandbox mode
+	 * If incorrect, show dialog again with message saying incorrect If correct,
+	 * return true and disable sandbox mode
 	 */
-	public boolean checkPassword() {
+	public boolean showCheckPasswordDialog() {
 		if (isNinjaMode) {
 			// launch alert
-			while (!passwordCorrect || abortPasswordCheck) {
+			passwordInput = new EditText(this);
+			messageHandler.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT.ordinal());
+
+			while (!checkPassword() || abortPasswordCheck) {
 				continue;
 			}
 		}
-		return false;
+		return checkPassword();
 	}
 	
 	/*
-	 * sets password to get out of sandbox mode
-	 * TODO(adchia):  do salting?
+	 * compares password to input password
 	 */
-	public void makePassword(String s) {
-		password = s;
+	private boolean checkPassword() {
+		// allow if we don't have a password
+		if (correctPassword == null)
+			return true;
+		
+		// check for equality
+		// TODO(adchia): salting and hashing?
+		if (attemptedPassword == null)
+			return false;
+		return correctPassword.equals(attemptedPassword);
 	}
 	
+	/*
+	 * sets password to get out of sandbox mode TODO(adchia): do salting?
+	 */
+	public void showMakePasswordDialog() {
+		passwordInput = new EditText(this);
+		messageHandler.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT.ordinal());
+	}
+
 	/*
 	 * Below we override all functions associated with launching activities and
 	 * intent handling. We keep track of the intent, and instead launch an alert
 	 * dialog prompting for password. If verified, then we proceed with
 	 * launching the intent.
 	 */
-	
+
 	@Override
 	public void startActivities(Intent[] intents, Bundle options) {
-		// launch dialog for password check and don't start activity until password correct
+		// launch dialog for password check and don't start activity until
+		// password correct
 		// TODO (adchia): only do this if intent is EXTERNAL
-		if (checkPassword()) {
+		if (showCheckPasswordDialog()) {
 			super.startActivities(intents, options);
 		}
 	}
@@ -186,7 +287,7 @@ public class NinjaActivity extends Activity {
 			int flagsValues, int extraFlags, Bundle options) {
 
 	}
-	
+
 	@Override
 	public boolean startNextMatchingActivity(Intent intent) {
 		return false;
