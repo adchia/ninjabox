@@ -132,20 +132,7 @@ public class MainActivity extends NinjaActivity {
         pm.setComponentEnabledSetting(cn2, 3 - dis, PackageManager.DONT_KILL_APP);
         
         pm.clearPackagePreferredActivities(getPackageName());
-        
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
- 
-		alertDialogBuilder
-			.setTitle("Ninja Mode")
-			.setMessage("NinjaMode has been toggled! Please press home button and select appropriate launcher.")
-			.setCancelable(false)
-			.setPositiveButton("OK",new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog,int id) {
-					dialog.cancel();
-				}
-			});
-		AlertDialog alertDialog = alertDialogBuilder.create();
-		alertDialog.show();
+
     }
 
 }
