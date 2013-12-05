@@ -5,9 +5,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.example.sample_ninjabox.util.SystemUiHider;
 
@@ -102,4 +104,16 @@ public class MainActivity extends Activity {
 			}
 		});
     }
+
+    public void onNinjaModeClicked(View view) {
+        // Is the toggle on?
+        boolean on = ((ToggleButton) view).isChecked();
+        
+        if (on) {
+            // enable ninja mode
+        } else {
+            // disable ninja mode
+        }
+    }
+
 }
