@@ -38,6 +38,9 @@ public class MainActivity extends Activity {
         NinjaActivity.initialize(getWindow());
         setContentView(R.layout.activity_main);
 
+        ToggleButton ninjaButton = (ToggleButton) findViewById(R.id.start_ninja_mode);
+        ninjaButton.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
+
         final ImageView bulbasaur = (ImageView) findViewById(R.id.bulbasaur);
         final ImageView charmander = (ImageView) findViewById(R.id.charmander);
         final ImageView squirtle = (ImageView) findViewById(R.id.squirtle);

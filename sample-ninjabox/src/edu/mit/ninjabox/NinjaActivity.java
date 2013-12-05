@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -189,7 +190,7 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startActivities(Intent[] intents) {
-
+		super.startActivities(intents);
 	}
 
 	@Override
@@ -199,42 +200,42 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startActivity(Intent intent, Bundle options) {
-
+		super.startActivity(intent, options);
 	}
 
 	@Override
 	public void startActivityForResult(Intent intent, int requestCode) {
-
+		super.startActivityForResult(intent, requestCode);
 	}
 
 	@Override
 	public void startActivityForResult(Intent intent, int requestCode,
 			Bundle options) {
-
+		super.startActivityForResult(intent, requestCode, options);
 	}
 
 	@Override
 	public void startActivityFromChild(Activity child, Intent intent,
 			int requestCode, Bundle options) {
-
+		super.startActivityFromChild(child, intent, requestCode, options);
 	}
 
 	@Override
 	public void startActivityFromChild(Activity child, Intent intent,
 			int requestCode) {
-
+		super.startActivityFromChild(child, intent, requestCode);
 	}
 
 	@Override
 	public void startActivityFromFragment(Fragment fragment, Intent intent,
 			int requestCode, Bundle options) {
-
+		super.startActivityFromFragment(fragment, intent, requestCode, options);
 	}
 
 	@Override
 	public void startActivityFromFragment(Fragment fragment, Intent intent,
 			int requestCode) {
-
+		super.startActivityFromFragment(fragment, intent, requestCode);
 	}
 
 	@Override
@@ -250,42 +251,42 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags, Bundle options) {
-
+			int flagsMask, int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
+		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
 	}
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags) {
-
+			int flagsMask, int flagsValues, int extraFlags) throws SendIntentException {
+		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderForResult(IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options) {
-
+			int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
+		super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
 	}
 
 	@Override
 	public void startIntentSenderForResult(IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags) {
-
+			int flagsValues, int extraFlags) throws SendIntentException {
+		super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderFromChild(Activity child, IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags) {
-
+			int flagsValues, int extraFlags) throws SendIntentException {
+		super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderFromChild(Activity child, IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options) {
-
+			int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
+		super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
 	}
 
 	@Override
