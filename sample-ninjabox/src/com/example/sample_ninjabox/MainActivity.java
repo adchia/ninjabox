@@ -1,6 +1,10 @@
 package com.example.sample_ninjabox;
 
+import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -117,6 +121,31 @@ public class MainActivity extends NinjaActivity {
             // disable ninja mode
         	stopNinjaMode();
         }
+        
+        PackageManager pm = getPackageManager();
+        ComponentName cn1 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias");
+        ComponentName cn2 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias-copy");
+        int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        
+        if(pm.getComponentEnabledSetting(cn1) == dis) dis = 3 - dis;
+        pm.setComponentEnabledSetting(cn1, dis, PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(cn2, 3 - dis, PackageManager.DONT_KILL_APP);
+        
+        pm.clearPackagePreferredActivities(getPackageName());
+        
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+ 
+		alertDialogBuilder
+			.setTitle("Ninja Mode")
+			.setMessage("NinjaMode has been toggled! Please press home button and select appropriate launcher.")
+			.setCancelable(false)
+			.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog,int id) {
+					dialog.cancel();
+				}
+			});
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.show();
     }
 
 }
