@@ -194,7 +194,7 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startActivity(Intent intent) {
-
+		super.startActivity(intent);
 	}
 
 	@Override
