@@ -1,5 +1,10 @@
 package edu.mit.ninjabox;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -7,7 +12,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -213,7 +221,7 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startActivity(Intent intent) {
-		super.startActivity(intent);
+
 	}
 
 	@Override
@@ -326,4 +334,108 @@ public class NinjaActivity extends Activity {
 	public boolean startNextMatchingActivity(Intent intent, Bundle options) {
 		return false;
 	}
+	
+	/*
+	 * Below we override all functions associated with data storage I/O. 
+	 * If isNinjaMode, we store all data in a new directory of our choice, 
+	 * which we delete when the user exits Ninja Mode.
+	 */
+	
+	@Override
+	public FileInputStream openFileInput(String name) throws FileNotFoundException {
+		String myName = name;
+		if (isNinjaMode) {
+			// THIS IS WRONG
+			myName += "_sandbox";
+		} 
+			
+		return super.openFileInput(name);
+	}
+	
+	@Override
+	public FileOutputStream openFileOutput(String name, int mode) throws FileNotFoundException {
+		String myName = name;
+		if (isNinjaMode) {
+			// THIS IS WRONG
+			myName += "_sandbox";
+		} 
+			
+		return super.openFileOutput(name, mode);
+	}
+	
+	@Override
+	public boolean deleteFile(String name) {
+		return super.deleteFile(name);
+	}
+	
+	@Override
+	public File getDir(String name, int mode) {
+		return super.getDir(name, mode);
+	}
+	
+	@Override
+	public File getFilesDir() {
+		return super.getFilesDir();
+	}
+	
+	@Override
+	public File getFileStreamPath(String name) {
+		return super.getFileStreamPath(name);
+	}
+	
+	@Override
+	public String[] fileList() {
+		return super.fileList();
+	}
+	
+	@Override
+	public File getExternalFilesDir(String type) {
+		return super.getExternalFilesDir(type);
+	}
+	
+	public static File getExternalStoragePublicDirectory(String type) {
+		return Environment.getExternalStoragePublicDirectory(type);
+	}
+	
+	@Override
+	public File getCacheDir() {
+		File myFile = super.getCacheDir();
+		if (isNinjaMode) {
+			// 1) check if ninja mode cache folder exists - if not, create
+			// 2) change myFile to ninja mode cache folder
+		} 
+			
+		return myFile;
+	}
+	
+	@Override
+	public File getExternalCacheDir() {
+		return super.getExternalCacheDir();
+	}
+	
+	@Override
+	public String[] databaseList() {
+		return super.databaseList();
+	}
+	
+	@Override
+	public boolean deleteDatabase(String name) {
+		return super.deleteDatabase(name);
+	}
+
+	@Override
+	public File getDatabasePath(String name) {
+		return super.getDatabasePath(name);
+	}
+	
+	@Override
+	public SQLiteDatabase openOrCreateDatabase(String name, int mode, SQLiteDatabase.CursorFactory factory) {
+		return super.openOrCreateDatabase(name, mode, factory);
+	}
+	
+	@Override
+	public SQLiteDatabase openOrCreateDatabase(String name, int mode, SQLiteDatabase.CursorFactory factory, DatabaseErrorHandler errorHandler) {
+		return super.openOrCreateDatabase(name, mode, factory, errorHandler);
+	}
+	
 }
