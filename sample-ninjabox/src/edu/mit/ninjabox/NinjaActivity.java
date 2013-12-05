@@ -25,11 +25,12 @@ public class NinjaActivity extends Activity {
 	private static AlertDialog.Builder passwordPrompt;
 	private static AlertDialog.Builder createPasswordPrompt;
 	private static EditText passwordInput;
+	private int oldFlag;
 
 	private enum NINJA_EVENT_TYPE {
 		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
 	}
-	
+
 	private static final Handler messageHandler = new Handler() {
 
 		public void handleMessage(Message msg) {
@@ -38,7 +39,8 @@ public class NinjaActivity extends Activity {
 					passwordInput.setText(attemptedPassword);
 				passwordPrompt.setView(passwordInput);
 				passwordPrompt.show();
-			} else if (msg.what == NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT.ordinal()){
+			} else if (msg.what == NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT
+					.ordinal()) {
 				createPasswordPrompt.setView(passwordInput);
 				createPasswordPrompt.show();
 			} else {
@@ -46,7 +48,7 @@ public class NinjaActivity extends Activity {
 			}
 		}
 	};
-	
+
 	/*
 	 * Override onCreate to check bundle for ninjaBox options and flip our
 	 * boolean if necessary. Change window preferences.
@@ -56,66 +58,76 @@ public class NinjaActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-//		savedInstanceState.get("ninjaModeOn");
-		
+
+		// savedInstanceState.get("ninjaModeOn");
+
 		// initialize password dialogs
 		passwordPrompt = new AlertDialog.Builder(this);
 		passwordPrompt.setTitle("Input password");
 
 		// set listener for ok when user inputs password
-		passwordPrompt.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
-				// save the attempted password
-				attemptedPassword = passwordInput.getText().toString().trim();
-				dialog.dismiss();
-			}
-		});
+		passwordPrompt.setPositiveButton("Ok",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						// save the attempted password
+						attemptedPassword = passwordInput.getText().toString()
+								.trim();
+						dialog.dismiss();
+					}
+				});
 
 		// set listener for cancel when user inputs password
-		passwordPrompt.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
-				dialog.cancel();
-			}
-		});
-		
+		passwordPrompt.setNegativeButton("Cancel",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						abortPasswordCheck = true;
+						dialog.cancel();
+					}
+				});
+
 		// initialize create password alert dialogs
 		createPasswordPrompt = new AlertDialog.Builder(this);
 		createPasswordPrompt.setTitle("Make a password");
 
 		// set listener for ok when user inputs password
-		createPasswordPrompt.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
-				// save the correct password
-				correctPassword = passwordInput.getText().toString().trim();
-				dialog.dismiss();
-			}
-		});
+		createPasswordPrompt.setPositiveButton("Ok",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						// save the correct password
+						correctPassword = passwordInput.getText().toString()
+								.trim();
+						dialog.dismiss();
+					}
+				});
 
 		// set listener for cancel when user inputs password
-		createPasswordPrompt.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
-				isNinjaMode = false;
-				dialog.cancel();
-			}
-		});
+		createPasswordPrompt.setNegativeButton("Cancel",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						stopNinjaMode();
+						dialog.cancel();
+					}
+				});
 	}
 
-	
 	/*
 	 * 
 	 */
 	public void startNinjaMode() {
+		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		isNinjaMode = true;
 		showMakePasswordDialog();
 	}
-	
+
 	public void stopNinjaMode() {
-		// TODO(adchia): change window layout back?
-		isNinjaMode = false;
+//		showCheckPasswordDialog();
+//		if (checkPassword()) {
+//			getWindow().setFlags(oldFlag, ~0);
+//			isNinjaMode = false;
+//		}
 	}
-	
+
 	/*
 	 * TODO: change this to be in onCreate Forces app to be fullscreen
 	 */
@@ -126,28 +138,25 @@ public class NinjaActivity extends Activity {
 		}
 	}
 
-	public NinjaPreferences getSharedPreferences(String preferenceName, int mode) {
-		return null;
-	}
+//	public NinjaPreferences getSharedPreferences(String preferenceName, int mode) {
+//		return null;
+//	}
 
 	/*
 	 * Shows the dialog for entering a user password to launch external intent
 	 * If incorrect, show dialog again with message saying incorrect If correct,
 	 * return true and disable sandbox mode
 	 */
-	public boolean showCheckPasswordDialog() {
+	public void showCheckPasswordDialog() {
 		if (isNinjaMode) {
 			// launch alert
 			passwordInput = new EditText(this);
-			messageHandler.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT.ordinal());
-
-			while (!checkPassword() || abortPasswordCheck) {
-				continue;
-			}
+			messageHandler
+					.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT
+							.ordinal());
 		}
-		return checkPassword();
 	}
-	
+
 	/*
 	 * compares password to input password
 	 */
@@ -156,19 +165,27 @@ public class NinjaActivity extends Activity {
 		if (correctPassword == null)
 			return true;
 		
-		// check for equality
-		// TODO(adchia): salting and hashing?
-		if (attemptedPassword == null)
-			return false;
-		return correctPassword.equals(attemptedPassword);
+		while (!abortPasswordCheck) {
+			// check for equality
+			if (attemptedPassword == null)
+				continue;
+			
+			abortPasswordCheck = true;
+			if (correctPassword.equals(attemptedPassword))
+				return true;
+		}
+		
+		return false;
 	}
-	
+
 	/*
 	 * sets password to get out of sandbox mode TODO(adchia): do salting?
 	 */
 	public void showMakePasswordDialog() {
 		passwordInput = new EditText(this);
-		messageHandler.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT.ordinal());
+		messageHandler
+				.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT
+						.ordinal());
 	}
 
 	/*
@@ -183,7 +200,8 @@ public class NinjaActivity extends Activity {
 		// launch dialog for password check and don't start activity until
 		// password correct
 		// TODO (adchia): only do this if intent is EXTERNAL
-		if (showCheckPasswordDialog()) {
+		showCheckPasswordDialog();
+		if (checkPassword()) {
 			super.startActivities(intents, options);
 		}
 	}
@@ -251,42 +269,52 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
-		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			int flagsMask, int flagsValues, int extraFlags, Bundle options)
+			throws SendIntentException {
+		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues,
+				extraFlags, options);
 	}
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags) throws SendIntentException {
-		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
+			int flagsMask, int flagsValues, int extraFlags)
+			throws SendIntentException {
+		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues,
+				extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderForResult(IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
-		super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			int flagsValues, int extraFlags, Bundle options)
+			throws SendIntentException {
+		super.startIntentSenderForResult(intent, requestCode, fillInIntent,
+				flagsMask, flagsValues, extraFlags, options);
 	}
 
 	@Override
 	public void startIntentSenderForResult(IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags) throws SendIntentException {
-		super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+		super.startIntentSenderForResult(intent, requestCode, fillInIntent,
+				flagsMask, flagsValues, extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderFromChild(Activity child, IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags) throws SendIntentException {
-		super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+		super.startIntentSenderFromChild(child, intent, requestCode,
+				fillInIntent, flagsMask, flagsValues, extraFlags);
 	}
 
 	@Override
 	public void startIntentSenderFromChild(Activity child, IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options) throws SendIntentException {
-		super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			int flagsValues, int extraFlags, Bundle options)
+			throws SendIntentException {
+		super.startIntentSenderFromChild(child, intent, requestCode,
+				fillInIntent, flagsMask, flagsValues, extraFlags, options);
 	}
 
 	@Override

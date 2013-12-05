@@ -1,11 +1,9 @@
 package com.example.sample_ninjabox;
 
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,7 +19,7 @@ import edu.mit.ninjabox.NinjaActivity;
  *
  * @see SystemUiHider
  */
-public class MainActivity extends Activity {
+public class MainActivity extends NinjaActivity {
     
     /**
      * Shared preferences name.
@@ -40,7 +38,7 @@ public class MainActivity extends Activity {
 
         ToggleButton ninjaButton = (ToggleButton) findViewById(R.id.start_ninja_mode);
         ninjaButton.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
-
+        
         final ImageView bulbasaur = (ImageView) findViewById(R.id.bulbasaur);
         final ImageView charmander = (ImageView) findViewById(R.id.charmander);
         final ImageView squirtle = (ImageView) findViewById(R.id.squirtle);
@@ -114,8 +112,10 @@ public class MainActivity extends Activity {
         
         if (on) {
             // enable ninja mode
+        	startNinjaMode();
         } else {
             // disable ninja mode
+        	stopNinjaMode();
         }
     }
 
