@@ -6,12 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.content.pm.PackageManager;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -19,6 +23,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -34,6 +39,10 @@ public class NinjaActivity extends Activity {
 	private static AlertDialog.Builder createPasswordPrompt;
 	private static EditText passwordInput;
 	private int oldFlag;
+	
+	private String ninjaPkgName;
+	private String ninjaAlias1;
+	private String ninjaAlias2;
 
 	private enum NINJA_EVENT_TYPE {
 		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
@@ -121,10 +130,14 @@ public class NinjaActivity extends Activity {
 	/*
 	 * 
 	 */
-	public void startNinjaMode() {
+	public void startNinjaMode(String pkgname, String alias1, String alias2) {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		isNinjaMode = true;
+		this.ninjaPkgName = pkgname;
+		this.ninjaAlias1 = alias1;
+		this.ninjaAlias2 = alias2;
+		refreshLauncherDefault();
 		showMakePasswordDialog();
 	}
 
@@ -133,9 +146,26 @@ public class NinjaActivity extends Activity {
 //		if (checkPassword()) {
 //			getWindow().setFlags(oldFlag, ~0);
 //			isNinjaMode = false;
+			refreshLauncherDefault();
 //		}
 	}
 
+	private void refreshLauncherDefault() {
+        
+        PackageManager pm = getPackageManager();
+        //ComponentName cn1 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias");
+        //ComponentName cn2 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias-copy");
+        ComponentName cn1 = new ComponentName(this.ninjaPkgName, this.ninjaAlias1);
+        ComponentName cn2 = new ComponentName(this.ninjaPkgName, this.ninjaAlias2);
+        int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        
+        if(pm.getComponentEnabledSetting(cn1) == dis) dis = 3 - dis;
+        pm.setComponentEnabledSetting(cn1, dis, PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(cn2, 3 - dis, PackageManager.DONT_KILL_APP);
+        
+        pm.clearPackagePreferredActivities(getPackageName());
+	}
+	
 	/*
 	 * TODO: change this to be in onCreate Forces app to be fullscreen
 	 */
@@ -221,7 +251,7 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public void startActivity(Intent intent) {
-
+		super.startActivity(intent);
 	}
 
 	@Override
@@ -334,6 +364,52 @@ public class NinjaActivity extends Activity {
 	public boolean startNextMatchingActivity(Intent intent, Bundle options) {
 		return false;
 	}
+	
+	/*
+	 * Below we override hardware key events.
+	 * If isNinjaMode, we disable functionality of the back button
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (isNinjaMode) {
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				return true;
+			}
+		}
+	    return super.onKeyDown(keyCode, event);
+	}
+	
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+		if (isNinjaMode && !hasFocus) {
+			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            //sendBroadcast(closeDialog);
+			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
+		}
+	}
+
+	private void toggleRecents() {
+		Intent closeRecents = new Intent("com.android.systemui.recent.action.TOGGLE_RECENTS");
+		closeRecents.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+		ComponentName recents = new ComponentName("com.android.systemui", "com.android.systemui.recent.RecentsActivity");
+		closeRecents.setComponent(recents);
+		this.startActivity(closeRecents);
+	}
+
+	private Handler windowCloseHandler = new Handler();
+	private Runnable windowCloserRunnable = new Runnable() {
+	       
+		@Override
+		public void run() {
+			ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+			ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
+			
+			if (cn != null && cn.getClassName().equals("com.android.systemui.recent.RecentsActivity")) {
+				toggleRecents();
+			}
+		}
+	};
 	
 	/*
 	 * Below we override all functions associated with data storage I/O. 

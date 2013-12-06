@@ -116,23 +116,11 @@ public class MainActivity extends NinjaActivity {
         
         if (on) {
             // enable ninja mode
-        	startNinjaMode();
+        	startNinjaMode("com.example.sample_ninjabox","com.example.sample_ninjabox.LoginAlias","com.example.sample_ninjabox.LoginAlias-copy");
         } else {
             // disable ninja mode
         	stopNinjaMode();
         }
-        
-        PackageManager pm = getPackageManager();
-        ComponentName cn1 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias");
-        ComponentName cn2 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias-copy");
-        int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        
-        if(pm.getComponentEnabledSetting(cn1) == dis) dis = 3 - dis;
-        pm.setComponentEnabledSetting(cn1, dis, PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(cn2, 3 - dis, PackageManager.DONT_KILL_APP);
-        
-        pm.clearPackagePreferredActivities(getPackageName());
-
     }
 
 }
