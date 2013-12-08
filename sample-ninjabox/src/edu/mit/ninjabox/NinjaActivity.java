@@ -1014,12 +1014,20 @@ public class NinjaActivity extends Activity {
 //		String path = this.getApplicationContext().getFilesDir() + "/sandbox/";
 //		File file = new File(path);
 //		file.mkdirs();
-		return sandboxFilesDir;
+		if (isNinjaMode) {
+			return sandboxFilesDir;
+		} else {
+			return getRealFilesDir();
+		}
 	}
 	
 	@Override
 	public File getCacheDir() {
-		return sandboxCacheDir;
+		if (isNinjaMode) {
+			return sandboxCacheDir;
+		} else {
+			return getRealCacheDir();
+		}
 	}
 
 	@Override
