@@ -46,6 +46,9 @@ public class NinjaActivity extends Activity {
 	private String ninjaPkgName;
 	private String ninjaAlias1;
 	private String ninjaAlias2;
+	
+	private File sandboxFilesDir; 
+	private File sandboxCacheDir;
 
 	private enum NINJA_EVENT_TYPE {
 		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
@@ -147,6 +150,9 @@ public class NinjaActivity extends Activity {
 		this.ninjaAlias2 = alias2;
 		refreshLauncherDefault();
 		showMakePasswordDialog();
+		
+		sandboxFilesDir = new File(getRealFilesDir(), "sandbox_files");
+		sandboxCacheDir = new File(getRealCacheDir(), "sandbox_cache");
 	}
 
 	public void stopNinjaMode() {
@@ -968,51 +974,63 @@ public class NinjaActivity extends Activity {
 	 */
 
 	@Override
-	public FileInputStream openFileInput(String name)
-			throws FileNotFoundException {
-		String myName = name;
-		if (isNinjaMode) {
-			// THIS IS WRONG
-			myName += "_sandbox";
-		}
-
+	public FileInputStream openFileInput(String name) throws FileNotFoundException {
+		// super.openFileInput() calls getFilesDir(), which has already been overrided
 		return super.openFileInput(name);
 	}
 
 	@Override
-	public FileOutputStream openFileOutput(String name, int mode)
-			throws FileNotFoundException {
-		String myName = name;
-		if (isNinjaMode) {
-			// THIS IS WRONG
-			myName += "_sandbox";
-		}
-
+	public FileOutputStream openFileOutput(String name, int mode) throws FileNotFoundException {
+		// super.openFileOutput() calls getFilesDir(), which has already been overrided
 		return super.openFileOutput(name, mode);
 	}
 
 	@Override
 	public boolean deleteFile(String name) {
+		// super.deleteFile() calls getFilesDir(), which has already been overrided
 		return super.deleteFile(name);
 	}
 
 	@Override
 	public File getDir(String name, int mode) {
+		// TODO: YOU SKIPPED THIS COME BACK LATTERRRRR!!!!!!
+		
+		// append sandbox to front?? - caveat: how do i find this again to delete it...
+		
+		// do we want to change the mode to Context.MODE_PRIVATE so that no other apps can access?
+		
+		// can we just deny this command to developers??
 		return super.getDir(name, mode);
 	}
 
 	@Override
 	public File getFilesDir() {
-		return super.getFilesDir();
+		// OPTIONS: 
+		// 1) override getFilesDir() to point to a subfolder - how can i change openFileInput + openFileOutput???
+		// 2) return as is and trust all other methods accessing this dir check for "sandbox_" prefix
+		
+		// let's make this point to a subfolder
+		// openFileInput and openFileOutput will call my implementation
+//		String path = this.getApplicationContext().getFilesDir() + "/sandbox/";
+//		File file = new File(path);
+//		file.mkdirs();
+		return sandboxFilesDir;
+	}
+	
+	@Override
+	public File getCacheDir() {
+		return sandboxCacheDir;
 	}
 
 	@Override
 	public File getFileStreamPath(String name) {
+		// super.getFileStreamPath() calls getFilesDir(), which has already been overrided
 		return super.getFileStreamPath(name);
 	}
 
 	@Override
 	public String[] fileList() {
+		// super.fileList() calls getFilesDir(), which has already been overrided
 		return super.fileList();
 	}
 
@@ -1023,17 +1041,6 @@ public class NinjaActivity extends Activity {
 
 	public static File getExternalStoragePublicDirectory(String type) {
 		return Environment.getExternalStoragePublicDirectory(type);
-	}
-
-	@Override
-	public File getCacheDir() {
-		File myFile = super.getCacheDir();
-		if (isNinjaMode) {
-			// 1) check if ninja mode cache folder exists - if not, create
-			// 2) change myFile to ninja mode cache folder
-		}
-
-		return myFile;
 	}
 
 	@Override
@@ -1069,4 +1076,11 @@ public class NinjaActivity extends Activity {
 		return super.openOrCreateDatabase(name, mode, factory, errorHandler);
 	}
 
+	private File getRealFilesDir() {
+		return super.getFilesDir();
+	}
+	
+	private File getRealCacheDir() {
+		return super.getCacheDir();
+	}
 }
