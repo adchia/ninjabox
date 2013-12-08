@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.List;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -15,12 +16,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
-import android.content.pm.PackageManager;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -35,14 +35,14 @@ public class NinjaActivity extends Activity {
 
 	private static boolean _initialized;
 	private static boolean isNinjaMode;
-	private static boolean abortPasswordCheck = false;
 	private static String correctPassword = null;
 	private static String attemptedPassword = null;
 	private static AlertDialog.Builder passwordPrompt;
 	private static AlertDialog.Builder createPasswordPrompt;
 	private static EditText passwordInput;
 	private int oldFlag;
-	
+	private NinjaActivity thisActivity;
+
 	private String ninjaPkgName;
 	private String ninjaAlias1;
 	private String ninjaAlias2;
@@ -80,6 +80,7 @@ public class NinjaActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		// savedInstanceState.get("ninjaModeOn");
+		thisActivity = this;
 
 		// initialize password dialogs
 		passwordPrompt = new AlertDialog.Builder(this);
@@ -100,7 +101,6 @@ public class NinjaActivity extends Activity {
 		passwordPrompt.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
-						abortPasswordCheck = true;
 						dialog.cancel();
 					}
 				});
@@ -133,6 +133,11 @@ public class NinjaActivity extends Activity {
 	/*
 	 * 
 	 */
+
+	public boolean isNinjaMode() {
+		return isNinjaMode;
+	}
+
 	public void startNinjaMode(String pkgname, String alias1, String alias2) {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -145,30 +150,45 @@ public class NinjaActivity extends Activity {
 	}
 
 	public void stopNinjaMode() {
-//		showCheckPasswordDialog();
-//		if (checkPassword()) {
-//			getWindow().setFlags(oldFlag, ~0);
-//			isNinjaMode = false;
-			refreshLauncherDefault();
-//		}
+		passwordPrompt.setPositiveButton("Ok",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						// save the attempted password
+						attemptedPassword = passwordInput.getText().toString()
+								.trim();
+						if (checkPassword()) {
+							getWindow().setFlags(oldFlag, ~0);
+							isNinjaMode = false;
+							refreshLauncherDefault();
+						}
+						dialog.dismiss();
+					}
+				});
+		showCheckPasswordDialog();
 	}
 
 	private void refreshLauncherDefault() {
-        
-        PackageManager pm = getPackageManager();
-        //ComponentName cn1 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias");
-        //ComponentName cn2 = new ComponentName("com.example.sample_ninjabox", "com.example.sample_ninjabox.LoginAlias-copy");
-        ComponentName cn1 = new ComponentName(this.ninjaPkgName, this.ninjaAlias1);
-        ComponentName cn2 = new ComponentName(this.ninjaPkgName, this.ninjaAlias2);
-        int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        
-        if(pm.getComponentEnabledSetting(cn1) == dis) dis = 3 - dis;
-        pm.setComponentEnabledSetting(cn1, dis, PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(cn2, 3 - dis, PackageManager.DONT_KILL_APP);
-        
-        pm.clearPackagePreferredActivities(getPackageName());
+
+		PackageManager pm = getPackageManager();
+		// ComponentName cn1 = new ComponentName("com.example.sample_ninjabox",
+		// "com.example.sample_ninjabox.LoginAlias");
+		// ComponentName cn2 = new ComponentName("com.example.sample_ninjabox",
+		// "com.example.sample_ninjabox.LoginAlias-copy");
+		ComponentName cn1 = new ComponentName(this.ninjaPkgName,
+				this.ninjaAlias1);
+		ComponentName cn2 = new ComponentName(this.ninjaPkgName,
+				this.ninjaAlias2);
+		int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+		if (pm.getComponentEnabledSetting(cn1) == dis)
+			dis = 3 - dis;
+		pm.setComponentEnabledSetting(cn1, dis, PackageManager.DONT_KILL_APP);
+		pm.setComponentEnabledSetting(cn2, 3 - dis,
+				PackageManager.DONT_KILL_APP);
+
+		pm.clearPackagePreferredActivities(getPackageName());
 	}
-	
+
 	/*
 	 * TODO: change this to be in onCreate Forces app to be fullscreen
 	 */
@@ -179,9 +199,10 @@ public class NinjaActivity extends Activity {
 		}
 	}
 
-//	public NinjaPreferences getSharedPreferences(String preferenceName, int mode) {
-//		return null;
-//	}
+	// public NinjaPreferences getSharedPreferences(String preferenceName, int
+	// mode) {
+	// return null;
+	// }
 
 	/*
 	 * Shows the dialog for entering a user password to launch external intent
@@ -205,17 +226,14 @@ public class NinjaActivity extends Activity {
 		// allow if we don't have a password
 		if (correctPassword == null)
 			return true;
-		
-		while (!abortPasswordCheck) {
-			// check for equality
-			if (attemptedPassword == null)
-				continue;
-			
-			abortPasswordCheck = true;
-			if (correctPassword.equals(attemptedPassword))
-				return true;
-		}
-		
+
+		// check for equality
+		if (attemptedPassword == null)
+			return false;
+
+		if (correctPassword.equals(attemptedPassword))
+			return true;
+
 		return false;
 	}
 
@@ -229,14 +247,17 @@ public class NinjaActivity extends Activity {
 						.ordinal());
 	}
 
-	private boolean isExternal(Intent ... intents) {
+	private boolean isExternal(Intent... intents) {
 		for (Intent intent : intents) {
-			List<ResolveInfo> activities = getPackageManager().queryIntentActivities(intent, 0);
+			List<ResolveInfo> activities = getPackageManager()
+					.queryIntentActivities(intent, 0);
 			for (ResolveInfo resolveInfo : activities) {
 				ActivityInfo info = resolveInfo.activityInfo;
 				try {
-					String pkgName = info.name.substring(0, info.name.lastIndexOf("."));
-					ActivityInfo test = getPackageManager().getActivityInfo(new ComponentName(pkgName, info.name), 0);
+					String pkgName = info.name.substring(0,
+							info.name.lastIndexOf("."));
+					ActivityInfo test = getPackageManager().getActivityInfo(
+							new ComponentName(pkgName, info.name), 0);
 					Log.d("NINJAACTIVITY", test.name);
 				} catch (PackageManager.NameNotFoundException e) {
 					Log.d("NINJAACTIVITY", "Not in this package :O");
@@ -246,6 +267,7 @@ public class NinjaActivity extends Activity {
 		}
 		return false;
 	}
+
 	/*
 	 * Below we override all functions associated with launching activities and
 	 * intent handling. We keep track of the intent, and instead launch an alert
@@ -254,279 +276,641 @@ public class NinjaActivity extends Activity {
 	 */
 
 	@Override
-	public void startActivities(Intent[] intents, Bundle options) {
+	public void startActivities(final Intent[] intents, final Bundle options) {
 		// launch dialog for password check and don't start activity until
 		// password correct
 		// TODO (adchia): only do this if intent is EXTERNAL
+
 		if (isExternal(intents) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivities(intents);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivities(intents, options);
-			}
 		} else {
 			super.startActivities(intents, options);
 		}
 	}
 
 	@Override
-	public void startActivities(Intent[] intents) {
+	public void startActivities(final Intent[] intents) {
 		if (isExternal(intents) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivities(intents);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivities(intents);
-			}
 		} else {
 			super.startActivities(intents);
 		}
 	}
 
 	@Override
-	public void startActivity(Intent intent) {
+	public void startActivity(final Intent intent) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity).startActivity(intent);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivity(intent);
-			}
 		} else {
 			super.startActivity(intent);
 		}
 	}
 
 	@Override
-	public void startActivity(Intent intent, Bundle options) {
+	public void startActivity(final Intent intent, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity).startActivity(intent,
+										options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivity(intent, options);
-			}
 		} else {
 			super.startActivity(intent, options);
 		}
 	}
 
 	@Override
-	public void startActivityForResult(Intent intent, int requestCode) {
+	public void startActivityForResult(final Intent intent,
+			final int requestCode) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityForResult(intent,
+												requestCode);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityForResult(intent, requestCode);
-			}
 		} else {
 			super.startActivityForResult(intent, requestCode);
 		}
 	}
 
 	@Override
-	public void startActivityForResult(Intent intent, int requestCode,
-			Bundle options) {
+	public void startActivityForResult(final Intent intent,
+			final int requestCode, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityForResult(intent,
+												requestCode, options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityForResult(intent, requestCode, options);
-			}
 		} else {
 			super.startActivityForResult(intent, requestCode, options);
 		}
 	}
 
 	@Override
-	public void startActivityFromChild(Activity child, Intent intent,
-			int requestCode, Bundle options) {
+	public void startActivityFromChild(final Activity child,
+			final Intent intent, final int requestCode, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityFromChild(child, intent,
+												requestCode, options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityFromChild(child, intent, requestCode, options);
-			}
 		} else {
 			super.startActivityFromChild(child, intent, requestCode, options);
 		}
 	}
 
 	@Override
-	public void startActivityFromChild(Activity child, Intent intent,
-			int requestCode) {
+	public void startActivityFromChild(final Activity child,
+			final Intent intent, final int requestCode) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityFromChild(child, intent,
+												requestCode);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityFromChild(child, intent, requestCode);
-			}
 		} else {
-			super.startActivityFromChild(child, intent, requestCode);
+			super.startActivity(intent);
 		}
 	}
 
 	@Override
-	public void startActivityFromFragment(Fragment fragment, Intent intent,
-			int requestCode, Bundle options) {
+	public void startActivityFromFragment(final Fragment fragment,
+			final Intent intent, final int requestCode, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityFromFragment(fragment,
+												intent, requestCode, options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityFromFragment(fragment, intent, requestCode, options);
-			}
 		} else {
-			super.startActivityFromFragment(fragment, intent, requestCode, options);
+			super.startActivityFromFragment(fragment, intent, requestCode,
+					options);
 		}
 	}
 
 	@Override
-	public void startActivityFromFragment(Fragment fragment, Intent intent,
-			int requestCode) {
+	public void startActivityFromFragment(final Fragment fragment,
+			final Intent intent, final int requestCode) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityFromFragment(fragment,
+												intent, requestCode);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startActivityFromFragment(fragment, intent, requestCode);
-			}
 		} else {
 			super.startActivityFromFragment(fragment, intent, requestCode);
 		}
 	}
 
 	@Override
-	public boolean startActivityIfNeeded(Intent intent, int requestCode,
-			Bundle options) {
+	public boolean startActivityIfNeeded(final Intent intent,
+			final int requestCode, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityIfNeeded(intent,
+												requestCode, options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				return super.startActivityIfNeeded(intent, requestCode, options);
-			} else {
-				return false;
-			}
+			return false;
 		} else {
 			return super.startActivityIfNeeded(intent, requestCode, options);
 		}
 	}
 
 	@Override
-	public boolean startActivityIfNeeded(Intent intent, int requestCode) {
+	public boolean startActivityIfNeeded(final Intent intent,
+			final int requestCode) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startActivityIfNeeded(intent,
+												requestCode);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				return super.startActivityIfNeeded(intent, requestCode);
-			} else {
-				return false;
-			}
+			return false;
 		} else {
 			return super.startActivityIfNeeded(intent, requestCode);
 		}
 	}
 
 	@Override
-	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags, Bundle options)
+	public void startIntentSender(final IntentSender intent,
+			final Intent fillInIntent, final int flagsMask,
+			final int flagsValues, final int extraFlags, final Bundle options)
 			throws SendIntentException {
 		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSender(intent,
+													fillInIntent, flagsMask,
+													flagsValues, extraFlags,
+													options);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
-			}
 		} else {
-			super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			super.startIntentSender(intent, fillInIntent, flagsMask,
+					flagsValues, extraFlags, options);
 		}
 	}
 
 	@Override
-	public void startIntentSender(IntentSender intent, Intent fillInIntent,
-			int flagsMask, int flagsValues, int extraFlags)
+	public void startIntentSender(final IntentSender intent,
+			final Intent fillInIntent, final int flagsMask,
+			final int flagsValues, final int extraFlags)
 			throws SendIntentException {
 		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSender(intent,
+													fillInIntent, flagsMask,
+													flagsValues, extraFlags);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
-			}
 		} else {
-			super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
+			super.startIntentSender(intent, fillInIntent, flagsMask,
+					flagsValues, extraFlags);
 		}
 	}
 
 	@Override
-	public void startIntentSenderForResult(IntentSender intent,
-			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options)
+	public void startIntentSenderForResult(final IntentSender intent,
+			final int requestCode, final Intent fillInIntent,
+			final int flagsMask, final int flagsValues, final int extraFlags,
+			final Bundle options) throws SendIntentException {
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSenderForResult(intent,
+													requestCode, fillInIntent,
+													flagsMask, flagsValues,
+													extraFlags, options);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
+			showCheckPasswordDialog();
+		} else {
+			super.startIntentSenderForResult(intent, requestCode, fillInIntent,
+					flagsMask, flagsValues, extraFlags, options);
+		}
+	}
+
+	@Override
+	public void startIntentSenderForResult(final IntentSender intent,
+			final int requestCode, final Intent fillInIntent,
+			final int flagsMask, final int flagsValues, final int extraFlags)
 			throws SendIntentException {
 		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSenderForResult(intent,
+													requestCode, fillInIntent,
+													flagsMask, flagsValues,
+													extraFlags);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
-			}
 		} else {
-			super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			super.startIntentSenderForResult(intent, requestCode, fillInIntent,
+					flagsMask, flagsValues, extraFlags);
 		}
 	}
 
 	@Override
-	public void startIntentSenderForResult(IntentSender intent,
-			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags) throws SendIntentException {
+	public void startIntentSenderFromChild(final Activity child, final IntentSender intent,
+			final int requestCode, final Intent fillInIntent, final int flagsMask,
+			final int flagsValues, final int extraFlags) throws SendIntentException {
 		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSenderFromChild(child, intent,
+													requestCode, fillInIntent,
+													flagsMask, flagsValues,
+													extraFlags);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
-			}
 		} else {
-			super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+			super.startIntentSenderFromChild(child, intent, requestCode,
+					fillInIntent, flagsMask, flagsValues, extraFlags);
 		}
 	}
 
 	@Override
-	public void startIntentSenderFromChild(Activity child, IntentSender intent,
-			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags) throws SendIntentException {
-		if (isExternal(fillInIntent) && isNinjaMode) {
-			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
-			}
-		} else {
-			super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
-		}
-	}
-
-	@Override
-	public void startIntentSenderFromChild(Activity child, IntentSender intent,
-			int requestCode, Intent fillInIntent, int flagsMask,
-			int flagsValues, int extraFlags, Bundle options)
+	public void startIntentSenderFromChild(final Activity child, final IntentSender intent,
+			final int requestCode, final Intent fillInIntent, final int flagsMask,
+			final int flagsValues, final int extraFlags, final Bundle options)
 			throws SendIntentException {
 		if (isExternal(fillInIntent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								try {
+									((Activity) thisActivity)
+											.startIntentSenderFromChild(child, intent,
+													requestCode, fillInIntent,
+													flagsMask, flagsValues,
+													extraFlags, options);
+								} catch (SendIntentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
-			}
 		} else {
-			super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			super.startIntentSenderFromChild(child, intent, requestCode,
+					fillInIntent, flagsMask, flagsValues, extraFlags, options);
 		}
 	}
 
 	@Override
-	public boolean startNextMatchingActivity(Intent intent) {
+	public boolean startNextMatchingActivity(final Intent intent) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startNextMatchingActivity(intent);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				return super.startNextMatchingActivity(intent);
-			} else {
-				return false;
-			}
+			return false;
 		} else {
 			return super.startNextMatchingActivity(intent);
 		}
 	}
 
 	@Override
-	public boolean startNextMatchingActivity(Intent intent, Bundle options) {
+	public boolean startNextMatchingActivity(final Intent intent, final Bundle options) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.startNextMatchingActivity(intent, options);
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				return super.startNextMatchingActivity(intent, options);
-			} else {
-				return false;
-			}
+			return false;
 		} else {
 			return super.startNextMatchingActivity(intent, options);
 		}
 	}
-	
+
 	/*
-	 * Below we override hardware key events.
-	 * If isNinjaMode, we disable functionality of the back button
+	 * Below we override hardware key events. If isNinjaMode, we disable
+	 * functionality of the back button
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -535,124 +919,133 @@ public class NinjaActivity extends Activity {
 				return true;
 			}
 		}
-	    return super.onKeyDown(keyCode, event);
+		return super.onKeyDown(keyCode, event);
 	}
-	
+
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
 		if (isNinjaMode && !hasFocus) {
-			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            //sendBroadcast(closeDialog);
+			// Intent closeDialog = new
+			// Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+			// sendBroadcast(closeDialog);
 			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
 		}
 	}
 
 	private void toggleRecents() {
-		Intent closeRecents = new Intent("com.android.systemui.recent.action.TOGGLE_RECENTS");
-		closeRecents.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-		ComponentName recents = new ComponentName("com.android.systemui", "com.android.systemui.recent.RecentsActivity");
+		Intent closeRecents = new Intent(
+				"com.android.systemui.recent.action.TOGGLE_RECENTS");
+		closeRecents.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+		ComponentName recents = new ComponentName("com.android.systemui",
+				"com.android.systemui.recent.RecentsActivity");
 		closeRecents.setComponent(recents);
 		this.startActivity(closeRecents);
 	}
 
 	private Handler windowCloseHandler = new Handler();
 	private Runnable windowCloserRunnable = new Runnable() {
-	       
+
 		@Override
 		public void run() {
-			ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+			ActivityManager am = (ActivityManager) getApplicationContext()
+					.getSystemService(Context.ACTIVITY_SERVICE);
 			ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-			
-			if (cn != null && cn.getClassName().equals("com.android.systemui.recent.RecentsActivity")) {
+
+			if (cn != null
+					&& cn.getClassName().equals(
+							"com.android.systemui.recent.RecentsActivity")) {
 				toggleRecents();
 			}
 		}
 	};
-	
+
 	/*
-	 * Below we override all functions associated with data storage I/O. 
-	 * If isNinjaMode, we store all data in a new directory of our choice, 
-	 * which we delete when the user exits Ninja Mode.
+	 * Below we override all functions associated with data storage I/O. If
+	 * isNinjaMode, we store all data in a new directory of our choice, which we
+	 * delete when the user exits Ninja Mode.
 	 */
-	
+
 	@Override
-	public FileInputStream openFileInput(String name) throws FileNotFoundException {
+	public FileInputStream openFileInput(String name)
+			throws FileNotFoundException {
 		String myName = name;
 		if (isNinjaMode) {
 			// THIS IS WRONG
 			myName += "_sandbox";
-		} 
-			
+		}
+
 		return super.openFileInput(name);
 	}
-	
+
 	@Override
-	public FileOutputStream openFileOutput(String name, int mode) throws FileNotFoundException {
+	public FileOutputStream openFileOutput(String name, int mode)
+			throws FileNotFoundException {
 		String myName = name;
 		if (isNinjaMode) {
 			// THIS IS WRONG
 			myName += "_sandbox";
-		} 
-			
+		}
+
 		return super.openFileOutput(name, mode);
 	}
-	
+
 	@Override
 	public boolean deleteFile(String name) {
 		return super.deleteFile(name);
 	}
-	
+
 	@Override
 	public File getDir(String name, int mode) {
 		return super.getDir(name, mode);
 	}
-	
+
 	@Override
 	public File getFilesDir() {
 		return super.getFilesDir();
 	}
-	
+
 	@Override
 	public File getFileStreamPath(String name) {
 		return super.getFileStreamPath(name);
 	}
-	
+
 	@Override
 	public String[] fileList() {
 		return super.fileList();
 	}
-	
+
 	@Override
 	public File getExternalFilesDir(String type) {
 		return super.getExternalFilesDir(type);
 	}
-	
+
 	public static File getExternalStoragePublicDirectory(String type) {
 		return Environment.getExternalStoragePublicDirectory(type);
 	}
-	
+
 	@Override
 	public File getCacheDir() {
 		File myFile = super.getCacheDir();
 		if (isNinjaMode) {
 			// 1) check if ninja mode cache folder exists - if not, create
 			// 2) change myFile to ninja mode cache folder
-		} 
-			
+		}
+
 		return myFile;
 	}
-	
+
 	@Override
 	public File getExternalCacheDir() {
 		return super.getExternalCacheDir();
 	}
-	
+
 	@Override
 	public String[] databaseList() {
 		return super.databaseList();
 	}
-	
+
 	@Override
 	public boolean deleteDatabase(String name) {
 		return super.deleteDatabase(name);
@@ -662,15 +1055,18 @@ public class NinjaActivity extends Activity {
 	public File getDatabasePath(String name) {
 		return super.getDatabasePath(name);
 	}
-	
+
 	@Override
-	public SQLiteDatabase openOrCreateDatabase(String name, int mode, SQLiteDatabase.CursorFactory factory) {
+	public SQLiteDatabase openOrCreateDatabase(String name, int mode,
+			SQLiteDatabase.CursorFactory factory) {
 		return super.openOrCreateDatabase(name, mode, factory);
 	}
-	
+
 	@Override
-	public SQLiteDatabase openOrCreateDatabase(String name, int mode, SQLiteDatabase.CursorFactory factory, DatabaseErrorHandler errorHandler) {
+	public SQLiteDatabase openOrCreateDatabase(String name, int mode,
+			SQLiteDatabase.CursorFactory factory,
+			DatabaseErrorHandler errorHandler) {
 		return super.openOrCreateDatabase(name, mode, factory, errorHandler);
 	}
-	
+
 }

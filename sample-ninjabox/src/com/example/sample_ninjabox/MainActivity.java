@@ -130,7 +130,7 @@ public class MainActivity extends NinjaActivity {
         // Is the toggle on?
         boolean on = ((ToggleButton) view).isChecked();
         
-        if (on) {
+        if (on && !isNinjaMode()) {
             // enable ninja mode
         	startNinjaMode("com.example.sample_ninjabox","com.example.sample_ninjabox.LoginAlias","com.example.sample_ninjabox.LoginAlias-copy");
         } else {
