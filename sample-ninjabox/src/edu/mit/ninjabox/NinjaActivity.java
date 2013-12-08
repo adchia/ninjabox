@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
+
+import com.android.internal.telephony.ITelephony;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -25,6 +29,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -46,6 +52,9 @@ public class NinjaActivity extends Activity {
 	private String ninjaPkgName;
 	private String ninjaAlias1;
 	private String ninjaAlias2;
+	
+	private TelephonyManager tm;
+	private CallStateListener callStateListener;
 	
 	private File sandboxFilesDir; 
 	private File sandboxCacheDir;
@@ -153,6 +162,10 @@ public class NinjaActivity extends Activity {
 		
 		sandboxFilesDir = new File(getRealFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(getRealCacheDir(), "sandbox_cache");
+		
+		callStateListener = new CallStateListener();
+		tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+		tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 	}
 
 	public void stopNinjaMode() {
@@ -166,6 +179,7 @@ public class NinjaActivity extends Activity {
 							getWindow().setFlags(oldFlag, ~0);
 							isNinjaMode = false;
 							refreshLauncherDefault();
+							tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
 						}
 						dialog.dismiss();
 					}
@@ -967,6 +981,30 @@ public class NinjaActivity extends Activity {
 		}
 	};
 
+	/**
+	* Listener to detect incoming calls. 
+	*/
+	private class CallStateListener extends PhoneStateListener {
+	  @Override
+	  public void onCallStateChanged(int state, String incomingNumber) {
+	      switch (state) {
+	          case TelephonyManager.CALL_STATE_RINGING:
+	          // called when someone is ringing to this phone
+	        	  try {
+	        		  Class c = Class.forName(tm.getClass().getName());
+	        		  Method m = c.getDeclaredMethod("getITelephony");
+	        		  m.setAccessible(true);
+	        		  ITelephony telephonyService = (ITelephony) m.invoke(tm);
+	        		  telephonyService.endCall();
+	        	  } catch (Exception e) {
+	        		  e.printStackTrace();
+	        	  } 
+	          
+	          break;
+	      }
+	  }
+	}
+	
 	/*
 	 * Below we override all functions associated with data storage I/O. If
 	 * isNinjaMode, we store all data in a new directory of our choice, which we
