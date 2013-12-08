@@ -8,5 +8,6 @@
     <string name="your_starter">Your starter is:</string>
     <string name="start_ninja_mode">Enable</string>
     <string name="stop_ninja_mode">Disable</string>
+    <string name="email_button">Email Info</string>
 
 </resources>

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-
+import java.util.List;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -18,6 +18,9 @@ import android.content.IntentSender.SendIntentException;
 import android.content.pm.PackageManager;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -226,6 +229,23 @@ public class NinjaActivity extends Activity {
 						.ordinal());
 	}
 
+	private boolean isExternal(Intent ... intents) {
+		for (Intent intent : intents) {
+			List<ResolveInfo> activities = getPackageManager().queryIntentActivities(intent, 0);
+			for (ResolveInfo resolveInfo : activities) {
+				ActivityInfo info = resolveInfo.activityInfo;
+				try {
+					String pkgName = info.name.substring(0, info.name.lastIndexOf("."));
+					ActivityInfo test = getPackageManager().getActivityInfo(new ComponentName(pkgName, info.name), 0);
+					Log.d("NINJAACTIVITY", test.name);
+				} catch (PackageManager.NameNotFoundException e) {
+					Log.d("NINJAACTIVITY", "Not in this package :O");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	/*
 	 * Below we override all functions associated with launching activities and
 	 * intent handling. We keep track of the intent, and instead launch an alert
@@ -238,87 +258,184 @@ public class NinjaActivity extends Activity {
 		// launch dialog for password check and don't start activity until
 		// password correct
 		// TODO (adchia): only do this if intent is EXTERNAL
-		showCheckPasswordDialog();
-		if (checkPassword()) {
+		if (isExternal(intents) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivities(intents, options);
+			}
+		} else {
 			super.startActivities(intents, options);
 		}
 	}
 
 	@Override
 	public void startActivities(Intent[] intents) {
-		super.startActivities(intents);
+		if (isExternal(intents) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivities(intents);
+			}
+		} else {
+			super.startActivities(intents);
+		}
 	}
 
 	@Override
 	public void startActivity(Intent intent) {
-		super.startActivity(intent);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivity(intent);
+			}
+		} else {
+			super.startActivity(intent);
+		}
 	}
 
 	@Override
 	public void startActivity(Intent intent, Bundle options) {
-		super.startActivity(intent, options);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivity(intent, options);
+			}
+		} else {
+			super.startActivity(intent, options);
+		}
 	}
 
 	@Override
 	public void startActivityForResult(Intent intent, int requestCode) {
-		super.startActivityForResult(intent, requestCode);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityForResult(intent, requestCode);
+			}
+		} else {
+			super.startActivityForResult(intent, requestCode);
+		}
 	}
 
 	@Override
 	public void startActivityForResult(Intent intent, int requestCode,
 			Bundle options) {
-		super.startActivityForResult(intent, requestCode, options);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityForResult(intent, requestCode, options);
+			}
+		} else {
+			super.startActivityForResult(intent, requestCode, options);
+		}
 	}
 
 	@Override
 	public void startActivityFromChild(Activity child, Intent intent,
 			int requestCode, Bundle options) {
-		super.startActivityFromChild(child, intent, requestCode, options);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityFromChild(child, intent, requestCode, options);
+			}
+		} else {
+			super.startActivityFromChild(child, intent, requestCode, options);
+		}
 	}
 
 	@Override
 	public void startActivityFromChild(Activity child, Intent intent,
 			int requestCode) {
-		super.startActivityFromChild(child, intent, requestCode);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityFromChild(child, intent, requestCode);
+			}
+		} else {
+			super.startActivityFromChild(child, intent, requestCode);
+		}
 	}
 
 	@Override
 	public void startActivityFromFragment(Fragment fragment, Intent intent,
 			int requestCode, Bundle options) {
-		super.startActivityFromFragment(fragment, intent, requestCode, options);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityFromFragment(fragment, intent, requestCode, options);
+			}
+		} else {
+			super.startActivityFromFragment(fragment, intent, requestCode, options);
+		}
 	}
 
 	@Override
 	public void startActivityFromFragment(Fragment fragment, Intent intent,
 			int requestCode) {
-		super.startActivityFromFragment(fragment, intent, requestCode);
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startActivityFromFragment(fragment, intent, requestCode);
+			}
+		} else {
+			super.startActivityFromFragment(fragment, intent, requestCode);
+		}
 	}
 
 	@Override
 	public boolean startActivityIfNeeded(Intent intent, int requestCode,
 			Bundle options) {
-		return false;
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				return super.startActivityIfNeeded(intent, requestCode, options);
+			} else {
+				return false;
+			}
+		} else {
+			return super.startActivityIfNeeded(intent, requestCode, options);
+		}
 	}
 
 	@Override
 	public boolean startActivityIfNeeded(Intent intent, int requestCode) {
-		return false;
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				return super.startActivityIfNeeded(intent, requestCode);
+			} else {
+				return false;
+			}
+		} else {
+			return super.startActivityIfNeeded(intent, requestCode);
+		}
 	}
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
 			int flagsMask, int flagsValues, int extraFlags, Bundle options)
 			throws SendIntentException {
-		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues,
-				extraFlags, options);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			}
+		} else {
+			super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+		}
 	}
 
 	@Override
 	public void startIntentSender(IntentSender intent, Intent fillInIntent,
 			int flagsMask, int flagsValues, int extraFlags)
 			throws SendIntentException {
-		super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues,
-				extraFlags);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
+			}
+		} else {
+			super.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
+		}
 	}
 
 	@Override
@@ -326,24 +443,42 @@ public class NinjaActivity extends Activity {
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags, Bundle options)
 			throws SendIntentException {
-		super.startIntentSenderForResult(intent, requestCode, fillInIntent,
-				flagsMask, flagsValues, extraFlags, options);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			}
+		} else {
+			super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+		}
 	}
 
 	@Override
 	public void startIntentSenderForResult(IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags) throws SendIntentException {
-		super.startIntentSenderForResult(intent, requestCode, fillInIntent,
-				flagsMask, flagsValues, extraFlags);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+			}
+		} else {
+			super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+		}
 	}
 
 	@Override
 	public void startIntentSenderFromChild(Activity child, IntentSender intent,
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags) throws SendIntentException {
-		super.startIntentSenderFromChild(child, intent, requestCode,
-				fillInIntent, flagsMask, flagsValues, extraFlags);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+			}
+		} else {
+			super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags);
+		}
 	}
 
 	@Override
@@ -351,18 +486,42 @@ public class NinjaActivity extends Activity {
 			int requestCode, Intent fillInIntent, int flagsMask,
 			int flagsValues, int extraFlags, Bundle options)
 			throws SendIntentException {
-		super.startIntentSenderFromChild(child, intent, requestCode,
-				fillInIntent, flagsMask, flagsValues, extraFlags, options);
+		if (isExternal(fillInIntent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+			}
+		} else {
+			super.startIntentSenderFromChild(child, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+		}
 	}
 
 	@Override
 	public boolean startNextMatchingActivity(Intent intent) {
-		return false;
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				return super.startNextMatchingActivity(intent);
+			} else {
+				return false;
+			}
+		} else {
+			return super.startNextMatchingActivity(intent);
+		}
 	}
 
 	@Override
 	public boolean startNextMatchingActivity(Intent intent, Bundle options) {
-		return false;
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				return super.startNextMatchingActivity(intent, options);
+			} else {
+				return false;
+			}
+		} else {
+			return super.startNextMatchingActivity(intent, options);
+		}
 	}
 	
 	/*
