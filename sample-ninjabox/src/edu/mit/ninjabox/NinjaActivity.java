@@ -37,6 +37,7 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class NinjaActivity extends Activity {
 
@@ -316,6 +317,10 @@ public class NinjaActivity extends Activity {
 								// insert whatever was intended.
 								((Activity) thisActivity)
 										.startActivities(intents);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -343,6 +348,10 @@ public class NinjaActivity extends Activity {
 								// insert whatever was intended.
 								((Activity) thisActivity)
 										.startActivities(intents);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -369,6 +378,10 @@ public class NinjaActivity extends Activity {
 
 								// insert whatever was intended.
 								((Activity) thisActivity).startActivity(intent);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -396,6 +409,10 @@ public class NinjaActivity extends Activity {
 								// insert whatever was intended.
 								((Activity) thisActivity).startActivity(intent,
 										options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -425,6 +442,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityForResult(intent,
 												requestCode);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -454,6 +475,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityForResult(intent,
 												requestCode, options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -483,6 +508,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityFromChild(child, intent,
 												requestCode, options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -512,6 +541,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityFromChild(child, intent,
 												requestCode);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -541,6 +574,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityFromFragment(fragment,
 												intent, requestCode, options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -571,6 +608,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityFromFragment(fragment,
 												intent, requestCode);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -600,6 +641,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityIfNeeded(intent,
 												requestCode, options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -630,6 +675,10 @@ public class NinjaActivity extends Activity {
 								((Activity) thisActivity)
 										.startActivityIfNeeded(intent,
 												requestCode);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -669,6 +718,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -707,6 +760,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -746,6 +803,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -785,6 +846,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -823,6 +888,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -862,6 +931,10 @@ public class NinjaActivity extends Activity {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -890,6 +963,10 @@ public class NinjaActivity extends Activity {
 								// insert whatever was intended.
 								((Activity) thisActivity)
 										.startNextMatchingActivity(intent);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -918,6 +995,10 @@ public class NinjaActivity extends Activity {
 								// insert whatever was intended.
 								((Activity) thisActivity)
 										.startNextMatchingActivity(intent, options);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
 							}
 							dialog.dismiss();
 						}
@@ -930,78 +1011,192 @@ public class NinjaActivity extends Activity {
 	}
 
 	@Override
-	public void sendBroadcast(Intent intent) {
+	public void sendBroadcast(final Intent intent) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendBroadcast(intent);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendBroadcast(intent);
-			}
 		} else {
 			super.sendBroadcast(intent);
 		}
 	}
 
 	@Override
-	public void sendBroadcast(Intent intent, String receiverPermission) {
+	public void sendBroadcast(final Intent intent, final String receiverPermission) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendBroadcast(intent, receiverPermission);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendBroadcast(intent, receiverPermission);
-			}
 		} else {
 			super.sendBroadcast(intent, receiverPermission);
 		}
 	}
 
 	@Override
-    public void sendOrderedBroadcast(Intent intent, String receiverPermission) {
+    public void sendOrderedBroadcast(final Intent intent, final String receiverPermission) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendOrderedBroadcast(intent, receiverPermission);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendOrderedBroadcast(intent, receiverPermission);
-			}
 		} else {
 			super.sendOrderedBroadcast(intent, receiverPermission);
 		}
 	}
 
 	@Override
-    public void sendOrderedBroadcast(Intent intent,
-            String receiverPermission, BroadcastReceiver resultReceiver,
-            Handler scheduler, int initialCode, String initialData,
-            Bundle initialExtras) {
+    public void sendOrderedBroadcast(final Intent intent,
+    		final String receiverPermission, final BroadcastReceiver resultReceiver,
+    		final Handler scheduler, final int initialCode, final String initialData,
+    		final Bundle initialExtras) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendOrderedBroadcast(intent, receiverPermission, resultReceiver, scheduler, initialCode, initialData, initialExtras);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendOrderedBroadcast(intent, receiverPermission, resultReceiver, scheduler, initialCode, initialData, initialExtras);
-			}
 		} else {
 			super.sendOrderedBroadcast(intent, receiverPermission, resultReceiver, scheduler, initialCode, initialData, initialExtras);
 		}
 	}
 
 	@Override
-    public void sendStickyBroadcast(Intent intent) {
+    public void sendStickyBroadcast(final Intent intent) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendStickyBroadcast(intent);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendStickyBroadcast(intent);
-			}
 		} else {
 			super.sendStickyBroadcast(intent);
 		}
 	}
 
 	@Override
-    public void sendStickyOrderedBroadcast(Intent intent,
-            BroadcastReceiver resultReceiver,
-            Handler scheduler, int initialCode, String initialData,
-            Bundle initialExtras) {
+    public void sendStickyOrderedBroadcast(final Intent intent,
+    		final BroadcastReceiver resultReceiver,
+    		final Handler scheduler, final int initialCode, final String initialData,
+    		final Bundle initialExtras) {
 		if (isExternal(intent) && isNinjaMode) {
+			passwordPrompt.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// save the attempted password
+							attemptedPassword = passwordInput.getText()
+									.toString().trim();
+							if (checkPassword()) {
+								isNinjaMode = false;
+								attemptedPassword = null;
+
+								// insert whatever was intended.
+								((Activity) thisActivity)
+										.sendStickyOrderedBroadcast(intent, resultReceiver, scheduler, initialCode, initialData, initialExtras);
+							} else {
+								Toast toast = Toast.makeText(getApplicationContext(),
+										"Incorrect Password", Toast.LENGTH_SHORT);
+								toast.show();
+							}
+							dialog.dismiss();
+						}
+					});
 			showCheckPasswordDialog();
-			if (checkPassword()) {
-				super.sendStickyOrderedBroadcast(intent, resultReceiver, scheduler, initialCode, initialData, initialExtras);
-			}
 		} else {
 			super.sendStickyOrderedBroadcast(intent, resultReceiver, scheduler, initialCode, initialData, initialExtras);
 		}
