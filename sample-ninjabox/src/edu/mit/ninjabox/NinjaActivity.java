@@ -1233,7 +1233,10 @@ public class NinjaActivity extends Activity {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (isNinjaMode) {
-			if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (keyCode == KeyEvent.KEYCODE_BACK
+					|| keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+					|| keyCode == KeyEvent.KEYCODE_VOLUME_UP
+					|| keyCode == KeyEvent.KEYCODE_SEARCH) {
 				return true;
 			}
 		}
@@ -1241,27 +1244,46 @@ public class NinjaActivity extends Activity {
 	}
 
 	@Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+		if (isNinjaMode) {
+			if (keyCode == KeyEvent.KEYCODE_BACK
+					|| keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+					|| keyCode == KeyEvent.KEYCODE_VOLUME_UP
+					|| keyCode == KeyEvent.KEYCODE_SEARCH) {
+				return true;
+			}
+		}
+        return super.onKeyLongPress(keyCode, event);
+    }
+	
+	@Override
+	public boolean onSearchRequested() {
+		if (isNinjaMode)
+			return true;
+		return super.onSearchRequested();
+	}
+	
+	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
-		if (isNinjaMode && !hasFocus) {
-//			 Intent closeDialog = new
-//			 Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-//			 sendBroadcast(closeDialog);
+
+		if (isNinjaMode ) {
+			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+			//sendBroadcast(closeDialog);
 			windowCloseHandler.postDelayed(windowCloserRunnable, 0);
-//			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
+			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
 		}
 	}
 
 	private void toggleRecents() {
-		Intent closeRecents = new Intent(
-				"com.android.systemui.recent.action.TOGGLE_RECENTS");
-		closeRecents.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+		Intent closeRecents = new Intent("com.android.systemui.recent.action.TOGGLE_RECENTS");
+		closeRecents.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK 
 				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 		ComponentName recents = new ComponentName("com.android.systemui",
 				"com.android.systemui.recent.RecentsActivity");
 		closeRecents.setComponent(recents);
 		isNinjaMode = false;
-		this.startActivity(closeRecents);
+		this.startActivity(closeRecents);	
 		isNinjaMode = true;
 	}
 
