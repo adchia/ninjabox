@@ -45,6 +45,10 @@ public class MainActivity extends NinjaActivity {
 
         ToggleButton ninjaButton = (ToggleButton) findViewById(R.id.start_ninja_mode);
         ninjaButton.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
+        if (isNinjaMode()) {
+        	ninjaButton.setChecked(true);
+        }
+        
         
         Button emailButton = (Button) findViewById(R.id.email_button);
 
@@ -133,6 +137,7 @@ public class MainActivity extends NinjaActivity {
             // enable ninja mode
         	startNinjaMode("com.example.sample_ninjabox","com.example.sample_ninjabox.LoginAlias","com.example.sample_ninjabox.LoginAlias-copy");
         } else {
+        	((ToggleButton) view).setChecked(true);
             // disable ninja mode
         	stopNinjaMode();
         }

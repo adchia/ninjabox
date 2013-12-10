@@ -4,11 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-
-import com.android.internal.telephony.ITelephony;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -39,12 +36,14 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.internal.telephony.ITelephony;
+
 public class NinjaActivity extends Activity {
 
 	private static boolean _initialized;
 	private static boolean isNinjaMode;
 	private static String correctPassword = null;
-	private static String attemptedPassword = null;
+	private String attemptedPassword = null;
 	private static AlertDialog.Builder passwordPrompt;
 	private static AlertDialog.Builder createPasswordPrompt;
 	private static EditText passwordInput;
@@ -65,7 +64,7 @@ public class NinjaActivity extends Activity {
 		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
 	}
 
-	private static final Handler messageHandler = new Handler() {
+	private final Handler messageHandler = new Handler() {
 
 		public void handleMessage(Message msg) {
 			if (msg.what == NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT.ordinal()) {
@@ -95,7 +94,7 @@ public class NinjaActivity extends Activity {
 
 		// savedInstanceState.get("ninjaModeOn");
 		thisActivity = this;
-
+		
 		// initialize password dialogs
 		passwordPrompt = new AlertDialog.Builder(this);
 		passwordPrompt.setTitle("Input password");
@@ -130,6 +129,14 @@ public class NinjaActivity extends Activity {
 						// save the correct password
 						correctPassword = passwordInput.getText().toString()
 								.trim();
+						Intent i = getIntent();
+						i.putExtra("isNinjaMode", true);
+						i.putExtra("ninjaPkgName", ninjaPkgName);
+						i.putExtra("ninjaAlias1", ninjaAlias1);
+						i.putExtra("ninjaAlias2", ninjaAlias2);
+						i.putExtra("correctPassword", correctPassword);
+						finish();
+						startActivity(i);
 						dialog.dismiss();
 					}
 				});
@@ -142,6 +149,18 @@ public class NinjaActivity extends Activity {
 						dialog.cancel();
 					}
 				});
+		
+		
+		// get ninja mode parameters
+		isNinjaMode = getIntent().getBooleanExtra("isNinjaMode", false);
+		ninjaPkgName = getIntent().getStringExtra("ninjaPkgName");
+		ninjaAlias1 = getIntent().getStringExtra("ninjaAlias1");
+		ninjaAlias2 = getIntent().getStringExtra("ninjaAlias2");
+		correctPassword = getIntent().getStringExtra("correctPassword");
+		
+		if (isNinjaMode) {
+			initializeNinjaMode();
+		}
 	}
 
 	/*
@@ -152,15 +171,10 @@ public class NinjaActivity extends Activity {
 		return isNinjaMode;
 	}
 
-	public void startNinjaMode(String pkgname, String alias1, String alias2) {
+	public void initializeNinjaMode() {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		isNinjaMode = true;
-		this.ninjaPkgName = pkgname;
-		this.ninjaAlias1 = alias1;
-		this.ninjaAlias2 = alias2;
 		refreshLauncherDefault();
-		showMakePasswordDialog();
 		
 		sandboxFilesDir = new File(getRealFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(getRealCacheDir(), "sandbox_cache");
@@ -168,6 +182,13 @@ public class NinjaActivity extends Activity {
 		callStateListener = new CallStateListener();
 		tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 		tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+	}
+	
+	public void startNinjaMode(String pkgname, String alias1, String alias2) {
+		ninjaAlias1 = alias1;
+		ninjaAlias2 = alias2;
+		ninjaPkgName = pkgname;
+		showMakePasswordDialog();
 	}
 
 	public void stopNinjaMode() {
@@ -179,9 +200,12 @@ public class NinjaActivity extends Activity {
 								.trim();
 						if (checkPassword()) {
 							getWindow().setFlags(oldFlag, ~0);
-							isNinjaMode = false;
 							refreshLauncherDefault();
 							tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
+							Intent i = getIntent();
+							i.putExtra("isNinjaMode", false);
+							finish();
+							startActivity(i);
 						}
 						dialog.dismiss();
 					}
@@ -1220,10 +1244,11 @@ public class NinjaActivity extends Activity {
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
 		if (isNinjaMode && !hasFocus) {
-			// Intent closeDialog = new
-			// Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-			// sendBroadcast(closeDialog);
-			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
+//			 Intent closeDialog = new
+//			 Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+//			 sendBroadcast(closeDialog);
+			windowCloseHandler.postDelayed(windowCloserRunnable, 0);
+//			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
 		}
 	}
 
@@ -1235,7 +1260,9 @@ public class NinjaActivity extends Activity {
 		ComponentName recents = new ComponentName("com.android.systemui",
 				"com.android.systemui.recent.RecentsActivity");
 		closeRecents.setComponent(recents);
+		isNinjaMode = false;
 		this.startActivity(closeRecents);
+		isNinjaMode = true;
 	}
 
 	private Handler windowCloseHandler = new Handler();
