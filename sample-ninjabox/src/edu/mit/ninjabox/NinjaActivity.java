@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -925,6 +926,84 @@ public class NinjaActivity extends Activity {
 			return false;
 		} else {
 			return super.startNextMatchingActivity(intent, options);
+		}
+	}
+
+	@Override
+	public void sendBroadcast(Intent intent) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendBroadcast(intent);
+			}
+		} else {
+			super.sendBroadcast(intent);
+		}
+	}
+
+	@Override
+	public void sendBroadcast(Intent intent, String receiverPermission) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendBroadcast(intent, receiverPermission);
+			}
+		} else {
+			super.sendBroadcast(intent, receiverPermission);
+		}
+	}
+
+	@Override
+    public void sendOrderedBroadcast(Intent intent, String receiverPermission) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendOrderedBroadcast(intent, receiverPermission);
+			}
+		} else {
+			super.sendOrderedBroadcast(intent, receiverPermission);
+		}
+	}
+
+	@Override
+    public void sendOrderedBroadcast(Intent intent,
+            String receiverPermission, BroadcastReceiver resultReceiver,
+            Handler scheduler, int initialCode, String initialData,
+            Bundle initialExtras) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendOrderedBroadcast(intent, receiverPermission, resultReceiver, scheduler, initialCode, initialData, initialExtras);
+			}
+		} else {
+			super.sendOrderedBroadcast(intent, receiverPermission, resultReceiver, scheduler, initialCode, initialData, initialExtras);
+		}
+	}
+
+	@Override
+    public void sendStickyBroadcast(Intent intent) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendStickyBroadcast(intent);
+			}
+		} else {
+			super.sendStickyBroadcast(intent);
+		}
+	}
+
+	@Override
+    public void sendStickyOrderedBroadcast(Intent intent,
+            BroadcastReceiver resultReceiver,
+            Handler scheduler, int initialCode, String initialData,
+            Bundle initialExtras) {
+		if (isExternal(intent) && isNinjaMode) {
+			showCheckPasswordDialog();
+			if (checkPassword()) {
+				super.sendStickyOrderedBroadcast(intent, resultReceiver, scheduler, initialCode, initialData, initialExtras);
+			}
+		} else {
+			super.sendStickyOrderedBroadcast(intent, resultReceiver, scheduler, initialCode, initialData, initialExtras);
 		}
 	}
 

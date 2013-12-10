@@ -52,7 +52,6 @@ public class MainActivity extends NinjaActivity {
         final ImageView charmander = (ImageView) findViewById(R.id.charmander);
         final ImageView squirtle = (ImageView) findViewById(R.id.squirtle);
         final TextView starter = (TextView) findViewById(R.id.starter);
-        
         SharedPreferences settings = getSharedPreferences(POKEMON_PREFS, MODE_PRIVATE);
         starter.setText(settings.getString(POKEMON_STARTER, "None!"));
         if (starter.getText().equals(BULBASAUR)) {
