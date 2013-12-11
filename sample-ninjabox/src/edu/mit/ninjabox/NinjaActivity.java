@@ -26,7 +26,6 @@ import android.content.pm.ResolveInfo;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.telephony.PhoneStateListener;
@@ -41,7 +40,8 @@ import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 
 public class NinjaActivity extends Activity {
-
+	private static final String[] EMPTY_FILE_LIST = {};
+	
 	private static boolean _initialized;
 	private static boolean isNinjaMode;
 	private static String correctPassword = null;
@@ -62,6 +62,9 @@ public class NinjaActivity extends Activity {
 	private File sandboxFilesDir; 
 	private File sandboxCacheDir;
 	private File sandboxPreferencesDir;
+	private HashMap<String, File> sandboxExternalFilesDirs;
+	private File sandboxExternalCacheDir;
+	private File sandboxDatabaseDir;
 	
 	private static final HashMap<String, NinjaPreferences> ninjaSharedPrefs =
             new HashMap<String, NinjaPreferences>();
@@ -74,6 +77,7 @@ public class NinjaActivity extends Activity {
 
 	private final Handler messageHandler = new Handler() {
 
+		@Override
 		public void handleMessage(Message msg) {
 			if (msg.what == NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT.ordinal()) {
 				if (attemptedPassword != null)
@@ -115,6 +119,7 @@ public class NinjaActivity extends Activity {
 		// set listener for ok when user inputs password
 		passwordPrompt.setPositiveButton("Ok",
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// save the attempted password
 						attemptedPassword = passwordInput.getText().toString()
@@ -126,6 +131,7 @@ public class NinjaActivity extends Activity {
 		// set listener for cancel when user inputs password
 		passwordPrompt.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
 						dialog.cancel();
 					}
@@ -138,6 +144,7 @@ public class NinjaActivity extends Activity {
 		// set listener for ok when user inputs password
 		createPasswordPrompt.setPositiveButton("Ok",
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// save the correct password
 						correctPassword = passwordInput.getText().toString()
@@ -157,6 +164,7 @@ public class NinjaActivity extends Activity {
 		// set listener for cancel when user inputs password
 		createPasswordPrompt.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
 						stopNinjaMode();
 						dialog.cancel();
@@ -189,8 +197,18 @@ public class NinjaActivity extends Activity {
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		refreshLauncherDefault();
 		
-		sandboxFilesDir = new File(getRealFilesDir(), "sandbox_files");
-		sandboxCacheDir = new File(getRealCacheDir(), "sandbox_cache");
+		sandboxFilesDir = new File(super.getFilesDir(), "sandbox_files");
+		sandboxCacheDir = new File(super.getCacheDir(), "sandbox_cache");
+		sandboxExternalCacheDir = new File(super.getExternalCacheDir(), "sandbox_external_cache");
+		sandboxDatabaseDir = new File(this.getCacheDir(), "sandbox_data");
+		try {
+			sandboxFilesDir.createNewFile();
+			sandboxCacheDir.createNewFile();
+			sandboxExternalCacheDir.createNewFile();
+			sandboxDatabaseDir.createNewFile();
+		} catch (Exception e) {
+		    Log.d("NINJAACTIVITY", "failed to save file - " + e.toString());
+		}
 		
 		callStateListener = new CallStateListener();
 		tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
@@ -207,6 +225,7 @@ public class NinjaActivity extends Activity {
 	public void stopNinjaMode() {
 		passwordPrompt.setPositiveButton("Ok",
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// save the attempted password
 						attemptedPassword = passwordInput.getText().toString()
@@ -343,6 +362,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intents) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -373,6 +393,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intents) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -404,6 +425,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -434,6 +456,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -466,6 +489,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -499,6 +523,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -532,6 +557,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -565,6 +591,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -598,6 +625,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -632,6 +660,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -665,6 +694,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -699,6 +729,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -735,6 +766,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -778,6 +810,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -820,6 +853,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -863,6 +897,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -905,6 +940,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -948,6 +984,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(fillInIntent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -988,6 +1025,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1020,6 +1058,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1052,6 +1091,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1083,6 +1123,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1114,6 +1155,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1148,6 +1190,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1179,6 +1222,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1213,6 +1257,7 @@ public class NinjaActivity extends Activity {
 		if (isExternal(intent) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// save the attempted password
@@ -1392,49 +1437,28 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public FileInputStream openFileInput(String name) throws FileNotFoundException {
-		// super.openFileInput() calls getFilesDir(), which has already been overrided
+		// super.openFileInput() calls getFilesDir(), which has already been overridden
 		return super.openFileInput(name);
 	}
 
 	@Override
 	public FileOutputStream openFileOutput(String name, int mode) throws FileNotFoundException {
-		// super.openFileOutput() calls getFilesDir(), which has already been overrided
+		// super.openFileOutput() calls getFilesDir(), which has already been overridden
 		return super.openFileOutput(name, mode);
 	}
 
 	@Override
 	public boolean deleteFile(String name) {
-		// super.deleteFile() calls getFilesDir(), which has already been overrided
+		// super.deleteFile() calls getFilesDir(), which has already been overridden
 		return super.deleteFile(name);
 	}
 
 	@Override
-	public File getDir(String name, int mode) {
-		// TODO: YOU SKIPPED THIS COME BACK LATTERRRRR!!!!!!
-		
-		// append sandbox to front?? - caveat: how do i find this again to delete it...
-		
-		// do we want to change the mode to Context.MODE_PRIVATE so that no other apps can access?
-		
-		// can we just deny this command to developers??
-		return super.getDir(name, mode);
-	}
-
-	@Override
 	public File getFilesDir() {
-		// OPTIONS: 
-		// 1) override getFilesDir() to point to a subfolder - how can i change openFileInput + openFileOutput???
-		// 2) return as is and trust all other methods accessing this dir check for "sandbox_" prefix
-		
-		// let's make this point to a subfolder
-		// openFileInput and openFileOutput will call my implementation
-//		String path = this.getApplicationContext().getFilesDir() + "/sandbox/";
-//		File file = new File(path);
-//		file.mkdirs();
 		if (isNinjaMode) {
 			return sandboxFilesDir;
 		} else {
-			return getRealFilesDir();
+			return super.getFilesDir();
 		}
 	}
 	
@@ -1443,69 +1467,90 @@ public class NinjaActivity extends Activity {
 		if (isNinjaMode) {
 			return sandboxCacheDir;
 		} else {
-			return getRealCacheDir();
+			return super.getCacheDir();
 		}
 	}
 
 	@Override
 	public File getFileStreamPath(String name) {
-		// super.getFileStreamPath() calls getFilesDir(), which has already been overrided
+		// super.getFileStreamPath() calls getFilesDir(), which has already been overridden
 		return super.getFileStreamPath(name);
 	}
 
 	@Override
 	public String[] fileList() {
-		// super.fileList() calls getFilesDir(), which has already been overrided
+		// super.fileList() calls getFilesDir(), which has already been overridden
 		return super.fileList();
 	}
 
 	@Override
 	public File getExternalFilesDir(String type) {
-		return super.getExternalFilesDir(type);
-	}
-
-	public static File getExternalStoragePublicDirectory(String type) {
-		return Environment.getExternalStoragePublicDirectory(type);
+		if (isNinjaMode) {
+			if (!sandboxExternalFilesDirs.containsKey(type)) {
+				File myDir = super.getExternalFilesDir("sandbox_" + type);
+				sandboxExternalFilesDirs.put(type, myDir);
+			} 
+			return sandboxExternalFilesDirs.get(type);
+		} else {
+			return super.getExternalFilesDir(type);
+		}
 	}
 
 	@Override
 	public File getExternalCacheDir() {
-		return super.getExternalCacheDir();
+		if (isNinjaMode) {
+			return sandboxExternalCacheDir;
+		} else {
+			return super.getExternalCacheDir();
+		}
 	}
 
 	@Override
 	public String[] databaseList() {
-		return super.databaseList();
+		if (isNinjaMode) {
+			final String[] list = sandboxDatabaseDir.list();
+			return (list != null) ? list : EMPTY_FILE_LIST;
+		} else {
+			return super.databaseList();
+		}
 	}
 
 	@Override
 	public boolean deleteDatabase(String name) {
-		return super.deleteDatabase(name);
+		if (isNinjaMode) {
+			return super.deleteDatabase(sandboxDatabaseDir + name);
+		} else {
+			return super.deleteDatabase(name);
+		}
 	}
 
 	@Override
 	public File getDatabasePath(String name) {
-		return super.getDatabasePath(name);
+		if (isNinjaMode) {
+			return sandboxDatabaseDir;
+		} else {
+			return super.getDatabasePath(name);
+		}
 	}
 
 	@Override
 	public SQLiteDatabase openOrCreateDatabase(String name, int mode,
 			SQLiteDatabase.CursorFactory factory) {
-		return super.openOrCreateDatabase(name, mode, factory);
+		if (isNinjaMode) {
+			return super.openOrCreateDatabase(sandboxDatabaseDir + name, mode, factory);
+		} else {
+			return super.openOrCreateDatabase(name, mode, factory);
+		}
 	}
 
 	@Override
 	public SQLiteDatabase openOrCreateDatabase(String name, int mode,
 			SQLiteDatabase.CursorFactory factory,
 			DatabaseErrorHandler errorHandler) {
-		return super.openOrCreateDatabase(name, mode, factory, errorHandler);
-	}
-
-	private File getRealFilesDir() {
-		return super.getFilesDir();
-	}
-	
-	private File getRealCacheDir() {
-		return super.getCacheDir();
+		if (isNinjaMode) {
+			return super.openOrCreateDatabase(sandboxDatabaseDir + name, mode, factory);
+		} else {
+			return super.openOrCreateDatabase(name, mode, factory, errorHandler);
+		}
 	}
 }
