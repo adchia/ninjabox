@@ -199,6 +199,7 @@ public class NinjaActivity extends Activity {
 		
 		sandboxFilesDir = new File(super.getFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(super.getCacheDir(), "sandbox_cache");
+		sandboxExternalFilesDirs = new HashMap<String, File>();
 		sandboxExternalCacheDir = new File(super.getExternalCacheDir(), "sandbox_external_cache");
 		sandboxDatabaseDir = new File(this.getCacheDir(), "sandbox_data");
 		try {
@@ -1414,8 +1415,8 @@ public class NinjaActivity extends Activity {
 	                File prefsFile = getSharedPrefsFile(name);
 	                sp = new NinjaPreferences(prefsFile, mode);
 	                ninjaSharedPrefs.put(name, (NinjaPreferences) sp);
-	                return sp;
 	            }
+	            return sp;
         	} 
         }
         return super.getSharedPreferences(name, mode);
