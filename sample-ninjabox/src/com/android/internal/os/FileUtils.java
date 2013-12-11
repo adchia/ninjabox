@@ -352,34 +352,4 @@ public class FileUtils {
             }
         }
     }
-
-    /**
-     * File status information. This class maps directly to the POSIX stat structure.
-     * @hide
-     */
-    public static final class FileStatus {
-        public int dev;
-        public int ino;
-        public int mode;
-        public int nlink;
-        public int uid;
-        public int gid;
-        public int rdev;
-        public long size;
-        public int blksize;
-        public long blocks;
-        public long atime;
-        public long mtime;
-        public long ctime;
-    }
-    
-    /**
-     * Get the status for the given path. This is equivalent to the POSIX stat(2) system call. 
-     * @param path The path of the file to be stat'd.
-     * @param status Optional argument to fill in. It will only fill in the status if the file
-     * exists. 
-     * @return true if the file exists and false if it does not exist. If you do not have 
-     * permission to stat the file, then this method will return false.
-     */
-    public static native boolean getFileStatus(String path, FileStatus status);
 }

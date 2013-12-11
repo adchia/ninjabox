@@ -52,9 +52,9 @@ public class NinjaActivity extends Activity {
 	private int oldFlag;
 	private NinjaActivity thisActivity;
 
-	private String ninjaPkgName;
-	private String ninjaAlias1;
-	private String ninjaAlias2;
+	private static String ninjaPkgName;
+	private static String ninjaAlias1;
+	private static String ninjaAlias2;
 	
 	private TelephonyManager tm;
 	private CallStateListener callStateListener;
@@ -66,8 +66,7 @@ public class NinjaActivity extends Activity {
 	private File sandboxExternalCacheDir;
 	private File sandboxDatabaseDir;
 	
-	private static final HashMap<String, NinjaPreferences> ninjaSharedPrefs =
-            new HashMap<String, NinjaPreferences>();
+	private static HashMap<String, NinjaPreferences> ninjaSharedPrefs;
 	
 	private final Object mSync = new Object();
 
@@ -173,11 +172,13 @@ public class NinjaActivity extends Activity {
 		
 		
 		// get ninja mode parameters
-		isNinjaMode = getIntent().getBooleanExtra("isNinjaMode", false);
-		ninjaPkgName = getIntent().getStringExtra("ninjaPkgName");
-		ninjaAlias1 = getIntent().getStringExtra("ninjaAlias1");
-		ninjaAlias2 = getIntent().getStringExtra("ninjaAlias2");
-		correctPassword = getIntent().getStringExtra("correctPassword");
+		isNinjaMode = getIntent().getBooleanExtra("isNinjaMode", isNinjaMode);
+		if (ninjaPkgName == null) {
+			ninjaPkgName = getIntent().getStringExtra("ninjaPkgName");
+			ninjaAlias1 = getIntent().getStringExtra("ninjaAlias1");
+			ninjaAlias2 = getIntent().getStringExtra("ninjaAlias2");
+			correctPassword = getIntent().getStringExtra("correctPassword");
+		}		
 		
 		if (isNinjaMode) {
 			initializeNinjaMode();
@@ -220,6 +221,13 @@ public class NinjaActivity extends Activity {
 		ninjaAlias1 = alias1;
 		ninjaAlias2 = alias2;
 		ninjaPkgName = pkgname;
+		
+		if (ninjaSharedPrefs != null) {
+			for (String preferenceName : ninjaSharedPrefs.keySet()) {
+				ninjaSharedPrefs.get(preferenceName).deleteFile();
+			}
+		}
+		ninjaSharedPrefs = new HashMap<String, NinjaPreferences>();
 		showMakePasswordDialog();
 	}
 
@@ -247,6 +255,13 @@ public class NinjaActivity extends Activity {
 							for (File file : sandboxExternalFilesDirs.values()) {
 								file.delete();
 							}
+							
+							for (String preferenceName : ninjaSharedPrefs.keySet()) {
+								ninjaSharedPrefs.get(preferenceName).deleteFile();
+							}
+							
+							ninjaSharedPrefs.clear();
+
 							sandboxExternalFilesDirs.clear();
 							
 							// keep this at end!
@@ -267,10 +282,10 @@ public class NinjaActivity extends Activity {
 		// "com.example.sample_ninjabox.LoginAlias");
 		// ComponentName cn2 = new ComponentName("com.example.sample_ninjabox",
 		// "com.example.sample_ninjabox.LoginAlias-copy");
-		ComponentName cn1 = new ComponentName(this.ninjaPkgName,
-				this.ninjaAlias1);
-		ComponentName cn2 = new ComponentName(this.ninjaPkgName,
-				this.ninjaAlias2);
+		ComponentName cn1 = new ComponentName(ninjaPkgName,
+				ninjaAlias1);
+		ComponentName cn2 = new ComponentName(ninjaPkgName,
+				ninjaAlias2);
 		int dis = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
 		if (pm.getComponentEnabledSetting(cn1) == dis)
@@ -292,10 +307,6 @@ public class NinjaActivity extends Activity {
 		}
 	}
 
-	// public NinjaPreferences getSharedPreferences(String preferenceName, int
-	// mode) {
-	// return null;
-	// }
 
 	/*
 	 * Shows the dialog for entering a user password to launch external intent
@@ -1412,7 +1423,11 @@ public class NinjaActivity extends Activity {
         	synchronized (ninjaSharedPrefs) {
 	            sp = ninjaSharedPrefs.get(name);
 	            if (sp == null) {
+	            	Log.d("NINJAACTIVITY", "Creating new NinjaPreferences");
 	                File prefsFile = getSharedPrefsFile(name);
+	                if (prefsFile.exists()) {
+	                	prefsFile.delete();
+	                }
 	                sp = new NinjaPreferences(prefsFile, mode);
 	                ninjaSharedPrefs.put(name, (NinjaPreferences) sp);
 	            }

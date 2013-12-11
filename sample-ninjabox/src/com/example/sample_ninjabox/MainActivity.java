@@ -51,6 +51,7 @@ public class MainActivity extends NinjaActivity {
         
         
         Button emailButton = (Button) findViewById(R.id.email_button);
+        Button logoutButton = (Button) findViewById(R.id.logout_button);
 
         final ImageView bulbasaur = (ImageView) findViewById(R.id.bulbasaur);
         final ImageView charmander = (ImageView) findViewById(R.id.charmander);
@@ -125,6 +126,15 @@ public class MainActivity extends NinjaActivity {
 				sendIntent.setData(Uri.parse("sms:"));
 
 				startActivity(Intent.createChooser(sendIntent, "Send Email"));
+			}
+		});
+		
+		logoutButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				finish();
+				startActivity(new Intent(getApplicationContext(), LoginActivity.class));
 			}
 		});
     }

@@ -21,7 +21,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.android.internal.util.XmlUtils;
 import com.android.internal.app.QueuedWork;
 import com.android.internal.os.FileUtils;
-import com.android.internal.os.FileUtils.FileStatus;
 
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -62,17 +61,17 @@ public class NinjaPreferences implements SharedPreferences {
         startLoadFromDisk();
     }
 	
+	public void deleteFile() {
+		mFile.delete();
+	}
+
 	private void startLoadFromDisk() {
         synchronized (this) {
             mLoaded = false;
         }
-        new Thread("NinjaPreferences-load") {
-            public void run() {
-                synchronized (NinjaPreferences.this) {
-                    loadFromDiskLocked();
-                }
-            }
-        }.start();
+        synchronized (NinjaPreferences.this) {
+            loadFromDiskLocked();
+        }
     }
 
     private void loadFromDiskLocked() {
@@ -106,7 +105,12 @@ public class NinjaPreferences implements SharedPreferences {
                 } catch (IOException e) {
                     Log.w(TAG, "getSharedPreferences", e);
                 } finally {
-                    IoUtils.closeQuietly(str);
+                    try {
+						str.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
                 }
             }
         } catch (ErrnoException e) {
@@ -119,6 +123,7 @@ public class NinjaPreferences implements SharedPreferences {
         } else {
             mMap = new HashMap<String, Object>();
         }
+        Log.d("NINJAPREFERENCES", mMap.toString());
         notifyAll();
     }
 
@@ -127,71 +132,90 @@ public class NinjaPreferences implements SharedPreferences {
 	}
 
 	@Override
-	public boolean contains(String arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean contains(String key) {
+		synchronized (this) {
+            return mMap.containsKey(key);
+        }
 	}
 
 	@Override
 	public Editor edit() {
-		// TODO Auto-generated method stub
 		return new NinjaEditor();
 	}
 
 	@Override
 	public Map<String, ?> getAll() {
-		// TODO Auto-generated method stub
-		return null;
+		synchronized(this) {
+            //noinspection unchecked
+            return new HashMap<String, Object>(mMap);
+        }
 	}
 
 	@Override
-	public boolean getBoolean(String arg0, boolean arg1) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean getBoolean(String key, boolean defValue) {
+		synchronized (this) {
+            Boolean v = (Boolean)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
-	public float getFloat(String arg0, float arg1) {
-		// TODO Auto-generated method stub
-		return 0;
+	public float getFloat(String key, float defValue) {
+		synchronized (this) {
+            Float v = (Float)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
-	public int getInt(String arg0, int arg1) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getInt(String key, int defValue) {
+		synchronized (this) {
+            Integer v = (Integer)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
-	public long getLong(String arg0, long arg1) {
-		// TODO Auto-generated method stub
-		return 0;
+	public long getLong(String key, long defValue) {
+		synchronized (this) {
+            Long v = (Long)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
-	public String getString(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getString(String key, String defValue) {
+		synchronized (this) {
+			if (mMap == null) {
+				Log.d("NINJAPREFERENCES", ":(");
+			}
+            String v = (String)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
-	public Set<String> getStringSet(String arg0, Set<String> arg1) {
-		// TODO Auto-generated method stub
-		return null;
+	public Set<String> getStringSet(String key, Set<String> defValue) {
+		synchronized (this) {
+			Set<String> v = (Set<String>)mMap.get(key);
+            return v != null ? v : defValue;
+        }
 	}
 
 	@Override
 	public void registerOnSharedPreferenceChangeListener(
-			OnSharedPreferenceChangeListener arg0) {
-		// TODO Auto-generated method stub
-		
+			OnSharedPreferenceChangeListener listener) {
+		synchronized(this) {
+            mListeners.put(listener, mContent);
+        }
 	}
 
 	@Override
 	public void unregisterOnSharedPreferenceChangeListener(
-			OnSharedPreferenceChangeListener arg0) {
-		// TODO Auto-generated method stub
-		
+			OnSharedPreferenceChangeListener listener) {
+		synchronized(this) {
+            mListeners.remove(listener);
+        }
 	}
 
 	/**
@@ -304,12 +328,14 @@ public class NinjaPreferences implements SharedPreferences {
             FileUtils.sync(str);
             str.close();
             setFilePermissionsFromMode(mFile.getPath(), mMode, 0);
-            FileStatus stat = new FileStatus();
-            if (FileUtils.getFileStatus(mFile.getPath(), stat)) {
+            try {
+            	final StructStat stat = Libcore.os.stat(mFile.getPath());
                 synchronized (this) {
-                    mStatTimestamp = stat.mtime;
-                    mStatSize = stat.size;
+                	mStatTimestamp = stat.st_mtime;
+                	mStatSize = stat.st_size;
                 }
+            } catch (ErrnoException e) {
+            	// Do nothing
             }
             // Writing was successful, delete the backup file if there is one.
             mBackupFile.delete();
@@ -473,56 +499,80 @@ public class NinjaPreferences implements SharedPreferences {
 
 		@Override
 		public Editor clear() {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mClear = true;
+                return this;
+            }
 		}
 
 		@Override
 		public boolean commit() {
-			// TODO Auto-generated method stub
-			return false;
+			MemoryCommitResult mcr = commitToMemory();
+            NinjaPreferences.this.enqueueDiskWrite(
+                mcr, null /* sync write on this thread okay */);
+            try {
+                mcr.writtenToDiskLatch.await();
+            } catch (InterruptedException e) {
+                return false;
+            }
+            notifyListeners(mcr);
+            return mcr.writeToDiskResult;
 		}
 
 		@Override
 		public Editor putBoolean(String key, boolean value) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
 		public Editor putFloat(String key, float value) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
 		public Editor putInt(String key, int value) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
 		public Editor putLong(String key, long value) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
 		public Editor putString(String key, String value) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
-		public Editor putStringSet(String arg0, Set<String> arg1) {
-			// TODO Auto-generated method stub
-			return null;
+		public Editor putStringSet(String key, Set<String> value) {
+			synchronized (this) {
+                mModified.put(key, value);
+                return this;
+            }
 		}
 
 		@Override
 		public Editor remove(String key) {
-			// TODO Auto-generated method stub
-			return null;
+			synchronized (this) {
+                mModified.put(key, this);
+                return this;
+            }
 		}
 		
 	}

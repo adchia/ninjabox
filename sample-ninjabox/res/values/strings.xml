@@ -9,5 +9,6 @@
     <string name="start_ninja_mode">Enable</string>
     <string name="stop_ninja_mode">Disable</string>
     <string name="email_button">Email Info</string>
+    <string name="logout">Log Out</string>
 
 </resources>
