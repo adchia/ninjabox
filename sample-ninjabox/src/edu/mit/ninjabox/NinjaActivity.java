@@ -1350,7 +1350,11 @@ public class NinjaActivity extends Activity {
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
 
-		if (isNinjaMode && !hasFocus) {
+		ActivityManager am = (ActivityManager) getApplicationContext()
+				.getSystemService(Context.ACTIVITY_SERVICE);
+		ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
+
+		if (isNinjaMode && !hasFocus && isExternal(Intent.makeMainActivity(cn))) {
 			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
 			//sendBroadcast(closeDialog);
 			keepClosingRecentApps = true;
