@@ -236,12 +236,6 @@ public class NinjaActivity extends Activity {
 							getWindow().setFlags(oldFlag, ~0);
 							refreshLauncherDefault();
 							tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
-<<<<<<< HEAD
-							Intent i = getIntent();
-							i.putExtra("isNinjaMode", false);
-							finish();
-							startActivity(i);
-=======
 							
 							// delete files
 							sandboxFilesDir.delete();
@@ -253,7 +247,12 @@ public class NinjaActivity extends Activity {
 								file.delete();
 							}
 							sandboxExternalFilesDirs.clear();
->>>>>>> delete files on stopNinjaMode
+							
+							// keep this at end!
+							Intent i = getIntent();
+							i.putExtra("isNinjaMode", false);
+							finish();
+							startActivity(i);
 						}
 					}
 				});
