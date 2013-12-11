@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
@@ -18,6 +19,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -59,6 +61,12 @@ public class NinjaActivity extends Activity {
 	
 	private File sandboxFilesDir; 
 	private File sandboxCacheDir;
+	private File sandboxPreferencesDir;
+	
+	private static final HashMap<String, NinjaPreferences> ninjaSharedPrefs =
+            new HashMap<String, NinjaPreferences>();
+	
+	private final Object mSync = new Object();
 
 	private enum NINJA_EVENT_TYPE {
 		SHOW_PASSWORD_INPUT, SHOW_MAKE_PASSWORD_INPUT
@@ -327,7 +335,6 @@ public class NinjaActivity extends Activity {
 	public void startActivities(final Intent[] intents, final Bundle options) {
 		// launch dialog for password check and don't start activity until
 		// password correct
-		// TODO (adchia): only do this if intent is EXTERNAL
 
 		if (isExternal(intents) && isNinjaMode) {
 			passwordPrompt.setPositiveButton("Ok",
@@ -1334,6 +1341,46 @@ public class NinjaActivity extends Activity {
 	  }
 	}
 	
+	// Preferences
+
+	@Override
+    public SharedPreferences getSharedPreferences(String name, int mode) {
+        SharedPreferences sp;
+        if (isNinjaMode) {
+        	synchronized (ninjaSharedPrefs) {
+	            sp = ninjaSharedPrefs.get(name);
+	            if (sp == null) {
+	                File prefsFile = getSharedPrefsFile(name);
+	                sp = new NinjaPreferences(prefsFile, mode);
+	                ninjaSharedPrefs.put(name, (NinjaPreferences) sp);
+	                return sp;
+	            }
+        	} 
+        }
+        return super.getSharedPreferences(name, mode);
+    }
+	
+	public File getSharedPrefsFile(String name) {
+        return makeFilename(getPreferencesDir(), name + ".xml");
+    }
+	
+	private File getPreferencesDir() {
+        synchronized (mSync) {
+            if (sandboxPreferencesDir == null) {
+            	sandboxPreferencesDir = new File(super.getApplicationInfo().dataDir, "sandbox_shared_prefs");
+            }
+            return sandboxPreferencesDir;
+        }
+    }
+	
+	private File makeFilename(File base, String name) {
+        if (name.indexOf(File.separatorChar) < 0) {
+            return new File(base, name);
+        }
+        throw new IllegalArgumentException(
+                "File " + name + " contains a path separator");
+    }
+
 	/*
 	 * Below we override all functions associated with data storage I/O. If
 	 * isNinjaMode, we store all data in a new directory of our choice, which we
