@@ -80,10 +80,12 @@ public class NinjaActivity extends Activity {
 					passwordInput.setText(attemptedPassword);
 				passwordPrompt.setView(passwordInput);
 				passwordPrompt.show();
+				displayingOwnDialog = true;
 			} else if (msg.what == NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT
 					.ordinal()) {
 				createPasswordPrompt.setView(passwordInput);
 				createPasswordPrompt.show();
+				displayingOwnDialog = true;
 			} else {
 				Log.e("Handler Error", "Invalid message passed to handler");
 			}
@@ -91,7 +93,8 @@ public class NinjaActivity extends Activity {
 	};
 	
 	private boolean keepClosingRecentApps = false;
-
+	private boolean displayingOwnDialog = false;
+	
 	/*
 	 * Override onCreate to check bundle for ninjaBox options and flip our
 	 * boolean if necessary. Change window preferences.
@@ -208,6 +211,8 @@ public class NinjaActivity extends Activity {
 						// save the attempted password
 						attemptedPassword = passwordInput.getText().toString()
 								.trim();
+						dialog.dismiss();
+
 						if (checkPassword()) {
 							getWindow().setFlags(oldFlag, ~0);
 							refreshLauncherDefault();
@@ -217,7 +222,6 @@ public class NinjaActivity extends Activity {
 							finish();
 							startActivity(i);
 						}
-						dialog.dismiss();
 					}
 				});
 		showCheckPasswordDialog();
@@ -1280,7 +1284,6 @@ public class NinjaActivity extends Activity {
 			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
 			//sendBroadcast(closeDialog);
 			keepClosingRecentApps = true;
-
 			windowCloseHandler.postDelayed(windowCloserRunnable, 0);
 		}
 	}
@@ -1302,7 +1305,7 @@ public class NinjaActivity extends Activity {
 
 		@Override
 		public void run() {
-			while (keepClosingRecentApps) {
+			while (keepClosingRecentApps && !displayingOwnDialog) {
 				ActivityManager am = (ActivityManager) getApplicationContext()
 						.getSystemService(Context.ACTIVITY_SERVICE);
 				ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
