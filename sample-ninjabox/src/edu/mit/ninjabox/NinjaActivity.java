@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -317,6 +318,7 @@ public class NinjaActivity extends Activity {
 		if (isNinjaMode) {
 			// launch alert
 			passwordInput = new EditText(this);
+			passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 			messageHandler
 					.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_PASSWORD_INPUT
 							.ordinal());
@@ -346,6 +348,7 @@ public class NinjaActivity extends Activity {
 	 */
 	public void showMakePasswordDialog() {
 		passwordInput = new EditText(this);
+		passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 		messageHandler
 				.sendEmptyMessage(NINJA_EVENT_TYPE.SHOW_MAKE_PASSWORD_INPUT
 						.ordinal());
