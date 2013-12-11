@@ -33,7 +33,6 @@ import com.android.internal.util.XmlUtils;
 public class NinjaPreferences implements SharedPreferences {
 	private static final String TAG = "NinjaPreferences";
 	
-	private HashMap<String, ?> tempPreference;
 	private final File mFile;
 	private final File mBackupFile;
 	private final int mMode;

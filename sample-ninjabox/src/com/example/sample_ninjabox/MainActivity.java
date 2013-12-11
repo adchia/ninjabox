@@ -1,11 +1,7 @@
 package com.example.sample_ninjabox;
 
-import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
@@ -40,7 +36,6 @@ public class MainActivity extends NinjaActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        NinjaActivity.initialize(getWindow());
         setContentView(R.layout.activity_main);
 
         ToggleButton ninjaButton = (ToggleButton) findViewById(R.id.start_ninja_mode);
@@ -48,6 +43,23 @@ public class MainActivity extends NinjaActivity {
         if (isNinjaMode()) {
         	ninjaButton.setChecked(true);
         }
+        
+        ninjaButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				 // Is the toggle on?
+		        boolean on = ((ToggleButton) view).isChecked();
+		        
+		        if (on && !isNinjaMode()) {
+		            // enable ninja mode
+		        	startNinjaMode("com.example.sample_ninjabox","com.example.sample_ninjabox.LoginAlias","com.example.sample_ninjabox.LoginAlias-copy");
+		        } else {
+		        	((ToggleButton) view).setChecked(true);
+		            // disable ninja mode
+		        	stopNinjaMode();
+		        }
+			}
+		});
         
         
         Button emailButton = (Button) findViewById(R.id.email_button);
@@ -138,19 +150,4 @@ public class MainActivity extends NinjaActivity {
 			}
 		});
     }
-
-    public void onNinjaModeClicked(View view) {
-        // Is the toggle on?
-        boolean on = ((ToggleButton) view).isChecked();
-        
-        if (on && !isNinjaMode()) {
-            // enable ninja mode
-        	startNinjaMode("com.example.sample_ninjabox","com.example.sample_ninjabox.LoginAlias","com.example.sample_ninjabox.LoginAlias-copy");
-        } else {
-        	((ToggleButton) view).setChecked(true);
-            // disable ninja mode
-        	stopNinjaMode();
-        }
-    }
-
 }

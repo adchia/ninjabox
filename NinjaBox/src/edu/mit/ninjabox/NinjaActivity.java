@@ -33,7 +33,6 @@ import android.telephony.TelephonyManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -43,7 +42,6 @@ import com.android.internal.telephony.ITelephony;
 public class NinjaActivity extends Activity {
 	private static final String[] EMPTY_FILE_LIST = {};
 	
-	private static boolean _initialized;
 	private static boolean isNinjaMode;
 	private static String correctPassword = null;
 	private String attemptedPassword = null;
@@ -297,17 +295,7 @@ public class NinjaActivity extends Activity {
 
 		pm.clearPackagePreferredActivities(getPackageName());
 	}
-
-	/*
-	 * TODO: change this to be in onCreate Forces app to be fullscreen
-	 */
-	@Deprecated
-	public static void initialize(Window window) {
-		if (!_initialized) {
-			window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		}
-	}
-
+	
 
 	/*
 	 * Shows the dialog for entering a user password to launch external intent
