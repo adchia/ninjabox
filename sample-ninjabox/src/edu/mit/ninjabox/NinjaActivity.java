@@ -81,6 +81,8 @@ public class NinjaActivity extends Activity {
 			}
 		}
 	};
+	
+	private boolean keepClosingRecentApps = false;
 
 	/*
 	 * Override onCreate to check bundle for ninjaBox options and flip our
@@ -1267,11 +1269,12 @@ public class NinjaActivity extends Activity {
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
 
-		if (isNinjaMode ) {
+		if (isNinjaMode && !hasFocus) {
 			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
 			//sendBroadcast(closeDialog);
+			keepClosingRecentApps = true;
+
 			windowCloseHandler.postDelayed(windowCloserRunnable, 0);
-			windowCloseHandler.postDelayed(windowCloserRunnable, 50);
 		}
 	}
 
@@ -1292,14 +1295,17 @@ public class NinjaActivity extends Activity {
 
 		@Override
 		public void run() {
-			ActivityManager am = (ActivityManager) getApplicationContext()
-					.getSystemService(Context.ACTIVITY_SERVICE);
-			ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-
-			if (cn != null
-					&& cn.getClassName().equals(
-							"com.android.systemui.recent.RecentsActivity")) {
-				toggleRecents();
+			while (keepClosingRecentApps) {
+				ActivityManager am = (ActivityManager) getApplicationContext()
+						.getSystemService(Context.ACTIVITY_SERVICE);
+				ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
+	
+				if (cn != null
+						&& cn.getClassName().equals(
+								"com.android.systemui.recent.RecentsActivity")) {
+					keepClosingRecentApps = false;
+					toggleRecents();
+				}
 			}
 		}
 	};
