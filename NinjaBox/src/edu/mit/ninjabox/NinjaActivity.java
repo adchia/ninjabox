@@ -195,7 +195,6 @@ public class NinjaActivity extends Activity {
 	public void initializeNinjaMode() {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		refreshLauncherDefault();
 		
 		sandboxFilesDir = new File(super.getFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(super.getCacheDir(), "sandbox_cache");
@@ -220,6 +219,7 @@ public class NinjaActivity extends Activity {
 		ninjaAlias1 = alias1;
 		ninjaAlias2 = alias2;
 		ninjaPkgName = pkgname;
+		refreshLauncherDefault();
 		
 		if (ninjaSharedPrefs != null) {
 			for (String preferenceName : ninjaSharedPrefs.keySet()) {
