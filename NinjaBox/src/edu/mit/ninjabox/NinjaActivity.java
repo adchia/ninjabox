@@ -1360,7 +1360,10 @@ public class NinjaActivity extends Activity {
 		ComponentName recents = new ComponentName("com.android.systemui",
 				"com.android.systemui.recent.RecentsActivity");
 		closeRecents.setComponent(recents);
+		Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+		
 		isNinjaMode = false;
+		this.sendBroadcast(closeDialog);
 		this.startActivity(closeRecents);	
 		isNinjaMode = true;
 	}
