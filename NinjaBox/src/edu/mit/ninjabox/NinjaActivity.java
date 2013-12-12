@@ -196,6 +196,28 @@ public class NinjaActivity extends Activity {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
+		// delete ninja mode files + folders if they exist
+		if (sandboxFilesDir != null) {
+			sandboxFilesDir.delete();
+		}
+		if (sandboxCacheDir != null) {
+			sandboxCacheDir.delete();
+		}
+		if (sandboxExternalCacheDir != null) {
+			sandboxExternalCacheDir.delete();
+		}
+		if (sandboxDatabaseDir != null) {
+			sandboxDatabaseDir.delete();
+		}
+		if (sandboxExternalFilesDirs != null) {
+			for (File file : sandboxExternalFilesDirs.values()) {
+				file.delete();
+			}
+			
+			sandboxExternalFilesDirs.clear();
+		}
+		
+		// create ninja mode files + folders
 		sandboxFilesDir = new File(super.getFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(super.getCacheDir(), "sandbox_cache");
 		sandboxExternalFilesDirs = new HashMap<String, File>();
@@ -255,13 +277,13 @@ public class NinjaActivity extends Activity {
 								file.delete();
 							}
 							
+							sandboxExternalFilesDirs.clear();
+							
 							for (String preferenceName : ninjaSharedPrefs.keySet()) {
 								ninjaSharedPrefs.get(preferenceName).deleteFile();
 							}
 							
 							ninjaSharedPrefs.clear();
-
-							sandboxExternalFilesDirs.clear();
 							
 							// keep this at end!
 							Intent i = getIntent();
