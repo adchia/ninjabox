@@ -1364,6 +1364,13 @@ public class NinjaActivity extends Activity {
 		this.startActivity(closeRecents);	
 		isNinjaMode = true;
 	}
+	
+	private void returnToApp() {
+		Intent returnIntent = getIntent();
+		isNinjaMode = false;
+		this.startActivity(returnIntent);	
+		isNinjaMode = true;
+	}
 
 	private Handler windowCloseHandler = new Handler();
 	private Runnable windowCloserRunnable = new Runnable() {
@@ -1380,6 +1387,8 @@ public class NinjaActivity extends Activity {
 								"com.android.systemui.recent.RecentsActivity")) {
 					keepClosingRecentApps = false;
 					toggleRecents();
+				} else { // for any other app that tries to steal focus, return to app
+					returnToApp();
 				}
 			}
 		}
