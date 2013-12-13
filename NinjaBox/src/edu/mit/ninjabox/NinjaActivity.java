@@ -1525,18 +1525,33 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public FileInputStream openFileInput(String name) throws FileNotFoundException {
+		if (isNinjaMode) {
+			if (checkDangerousPath(name)) {
+				throw new FileNotFoundException();
+			}
+		}
 		// super.openFileInput() calls getFilesDir(), which has already been overridden
 		return super.openFileInput(name);
 	}
 
 	@Override
 	public FileOutputStream openFileOutput(String name, int mode) throws FileNotFoundException {
+		if (isNinjaMode) {
+			if (checkDangerousPath(name)) {
+				throw new FileNotFoundException();
+			}
+		}
 		// super.openFileOutput() calls getFilesDir(), which has already been overridden
 		return super.openFileOutput(name, mode);
 	}
 
 	@Override
 	public boolean deleteFile(String name) {
+		if (isNinjaMode) {
+			if (checkDangerousPath(name)) {
+				return false;
+			}
+		}
 		// super.deleteFile() calls getFilesDir(), which has already been overridden
 		return super.deleteFile(name);
 	}
@@ -1561,6 +1576,11 @@ public class NinjaActivity extends Activity {
 
 	@Override
 	public File getFileStreamPath(String name) {
+		if (isNinjaMode) {
+			if (checkDangerousPath(name)) {
+				return super.getFileStreamPath(cleanDangerousPath(name));
+			}
+		}
 		// super.getFileStreamPath() calls getFilesDir(), which has already been overridden
 		return super.getFileStreamPath(name);
 	}
@@ -1606,7 +1626,7 @@ public class NinjaActivity extends Activity {
 	@Override
 	public boolean deleteDatabase(String name) {
 		if (isNinjaMode) {
-			return super.deleteDatabase(sandboxDatabaseDir + name);
+			return super.deleteDatabase(sandboxDatabaseDir + cleanDangerousPath(name));
 		} else {
 			return super.deleteDatabase(name);
 		}
@@ -1625,7 +1645,7 @@ public class NinjaActivity extends Activity {
 	public SQLiteDatabase openOrCreateDatabase(String name, int mode,
 			SQLiteDatabase.CursorFactory factory) {
 		if (isNinjaMode) {
-			return super.openOrCreateDatabase(sandboxDatabaseDir + name, mode, factory);
+			return super.openOrCreateDatabase(sandboxDatabaseDir + cleanDangerousPath(name), mode, factory);
 		} else {
 			return super.openOrCreateDatabase(name, mode, factory);
 		}
@@ -1636,9 +1656,17 @@ public class NinjaActivity extends Activity {
 			SQLiteDatabase.CursorFactory factory,
 			DatabaseErrorHandler errorHandler) {
 		if (isNinjaMode) {
-			return super.openOrCreateDatabase(sandboxDatabaseDir + name, mode, factory);
+			return super.openOrCreateDatabase(sandboxDatabaseDir + cleanDangerousPath(name), mode, factory);
 		} else {
 			return super.openOrCreateDatabase(name, mode, factory, errorHandler);
 		}
+	}
+	
+	private boolean checkDangerousPath(String path) {
+		return path.contains("../");
+	}
+	
+	private String cleanDangerousPath(String path) {
+		return path.replace("../", "");
 	}
 }
