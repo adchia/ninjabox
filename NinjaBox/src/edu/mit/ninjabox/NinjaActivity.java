@@ -1394,11 +1394,18 @@ public class NinjaActivity extends Activity {
 				.getSystemService(Context.ACTIVITY_SERVICE);
 		ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
 
-		if (isNinjaMode && !hasFocus && isExternal(Intent.makeMainActivity(cn))) {
-			//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-			//sendBroadcast(closeDialog);
-			keepClosingRecentApps = true;
-			windowCloseHandler.postDelayed(windowCloserRunnable, 0);
+		if (isNinjaMode && !hasFocus) {
+			isNinjaMode = false;
+			boolean external = isExternal(Intent.makeMainActivity(cn));
+			isNinjaMode = true;
+			if (external) {
+				//Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+				//sendBroadcast(closeDialog);
+				keepClosingRecentApps = true;
+				windowCloseHandler.postDelayed(windowCloserRunnable, 0);	
+			}
+		} else {
+			keepClosingRecentApps = false;
 		}
 	}
 
@@ -1436,13 +1443,14 @@ public class NinjaActivity extends Activity {
 				ActivityManager am = (ActivityManager) getApplicationContext()
 						.getSystemService(Context.ACTIVITY_SERVICE);
 				ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-	
+				Log.d("NINJAACTIVITY", cn.getClassName());
 				if (cn != null
 						&& cn.getClassName().equals(
 								"com.android.systemui.recent.RecentsActivity")) {
 					keepClosingRecentApps = false;
 					toggleRecents();
 				} else { // for any other app that tries to steal focus, return to app
+					keepClosingRecentApps = false;
 					returnToApp();
 				}
 			}
