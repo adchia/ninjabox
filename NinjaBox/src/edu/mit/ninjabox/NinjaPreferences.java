@@ -56,7 +56,10 @@ public class NinjaPreferences implements SharedPreferences {
         mMap = null;
         startLoadFromDisk();
     }
-	
+
+    /*
+     * Deletes the file in which the preferences were saved
+     */
 	public void deleteFile() {
 		mFile.delete();
 	}

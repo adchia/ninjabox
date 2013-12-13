@@ -98,7 +98,7 @@ public class NinjaActivity extends Activity {
 	private boolean displayingOwnDialog = false;
 	
 	/*
-	 * Override onCreate to check bundle for ninjaBox options and flip our
+	 * Override onCreate to check bundle for NinjaBox options and flip our
 	 * boolean if necessary. Change window preferences.
 	 * 
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
@@ -114,7 +114,7 @@ public class NinjaActivity extends Activity {
 		passwordPrompt = new AlertDialog.Builder(this);
 		passwordPrompt.setTitle("Input password");
 
-		// set listener for ok when user inputs password
+		// set listener for OK button when user inputs password
 		passwordPrompt.setPositiveButton("Ok",
 				new DialogInterface.OnClickListener() {
 					@Override
@@ -126,7 +126,7 @@ public class NinjaActivity extends Activity {
 					}
 				});
 
-		// set listener for cancel when user inputs password
+		// set listener for Cancel button when user inputs password
 		passwordPrompt.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
 					@Override
@@ -154,6 +154,8 @@ public class NinjaActivity extends Activity {
 						i.putExtra("ninjaAlias2", ninjaAlias2);
 						i.putExtra("correctPassword", correctPassword);
 						finish();
+
+						// Restart the activity
 						startActivity(i);
 						dialog.dismiss();
 					}
@@ -177,7 +179,7 @@ public class NinjaActivity extends Activity {
 			ninjaAlias1 = getIntent().getStringExtra("ninjaAlias1");
 			ninjaAlias2 = getIntent().getStringExtra("ninjaAlias2");
 			correctPassword = getIntent().getStringExtra("correctPassword");
-		}		
+		}
 		
 		if (isNinjaMode) {
 			initializeNinjaMode();
@@ -185,18 +187,23 @@ public class NinjaActivity extends Activity {
 	}
 
 	/*
-	 * 
+	 * Returns true if the application is currently in
+	 * NinjaMode
 	 */
-
 	public boolean isNinjaMode() {
 		return isNinjaMode;
 	}
 
+	/*
+	 * Sets up the sandbox for NinjaMode, which involves
+	 * setting up of sandboxed files, preferences, and
+	 * a listener for external intents such as phone calls.
+	 */
 	public void initializeNinjaMode() {
 		oldFlag = getWindow().getAttributes().flags;
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
-		// delete ninja mode files + folders if they exist
+		// delete ninja mode files + folders if they already exist
 		if (sandboxFilesDir != null) {
 			sandboxFilesDir.delete();
 		}
@@ -213,11 +220,10 @@ public class NinjaActivity extends Activity {
 			for (File file : sandboxExternalFilesDirs.values()) {
 				file.delete();
 			}
-			
 			sandboxExternalFilesDirs.clear();
 		}
 		
-		// create ninja mode files + folders
+		// Create ninja mode files + folders
 		sandboxFilesDir = new File(super.getFilesDir(), "sandbox_files");
 		sandboxCacheDir = new File(super.getCacheDir(), "sandbox_cache");
 		sandboxExternalFilesDirs = new HashMap<String, File>();
@@ -231,12 +237,17 @@ public class NinjaActivity extends Activity {
 		} catch (Exception e) {
 		    Log.d("NINJAACTIVITY", "failed to save file - " + e.toString());
 		}
-		
+
+		// Set up listener for phone calls
 		callStateListener = new CallStateListener();
 		tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 		tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 	}
-	
+
+	/*
+	 * Starts NinjaMode by prompting the user for a password to lock
+	 * a guest user in NinjaMode.
+	 */
 	public void startNinjaMode(String pkgname, String alias1, String alias2) {
 		ninjaAlias1 = alias1;
 		ninjaAlias2 = alias2;
@@ -252,6 +263,13 @@ public class NinjaActivity extends Activity {
 		showMakePasswordDialog();
 	}
 
+	/*
+	 * Shows the password dialog to prompt the user for
+	 * the password they set in startNinjaMode, and upon
+	 * entering the correct password will go about cleaning
+	 * up the sandbox (deleting necessary files and preferences)
+	 * and then restarting the activity.
+	 */
 	public void stopNinjaMode() {
 		passwordPrompt.setPositiveButton("Ok",
 				new DialogInterface.OnClickListener() {
@@ -278,7 +296,8 @@ public class NinjaActivity extends Activity {
 							}
 							
 							sandboxExternalFilesDirs.clear();
-							
+
+							// Delete preferences
 							for (String preferenceName : ninjaSharedPrefs.keySet()) {
 								ninjaSharedPrefs.get(preferenceName).deleteFile();
 							}
@@ -289,6 +308,8 @@ public class NinjaActivity extends Activity {
 							Intent i = getIntent();
 							i.putExtra("isNinjaMode", false);
 							finish();
+
+							// Restart activity
 							startActivity(i);
 						}
 					}
@@ -296,13 +317,14 @@ public class NinjaActivity extends Activity {
 		showCheckPasswordDialog();
 	}
 
+	/*
+	 * Switches the alias of the home launcher, essentially
+	 * resetting it such that Android will prompt the
+	 * user to choose a different launcher (e.g. when
+	 * pressing the home button)
+	 */
 	private void refreshLauncherDefault() {
-
 		PackageManager pm = getPackageManager();
-		// ComponentName cn1 = new ComponentName("com.example.sample_ninjabox",
-		// "com.example.sample_ninjabox.LoginAlias");
-		// ComponentName cn2 = new ComponentName("com.example.sample_ninjabox",
-		// "com.example.sample_ninjabox.LoginAlias-copy");
 		ComponentName cn1 = new ComponentName(ninjaPkgName,
 				ninjaAlias1);
 		ComponentName cn2 = new ComponentName(ninjaPkgName,
@@ -354,7 +376,7 @@ public class NinjaActivity extends Activity {
 	}
 
 	/*
-	 * sets password to get out of sandbox mode TODO(adchia): do salting?
+	 * sets password to get out of sandbox mode
 	 */
 	public void showMakePasswordDialog() {
 		passwordInput = new EditText(this);
@@ -364,6 +386,11 @@ public class NinjaActivity extends Activity {
 						.ordinal());
 	}
 
+	/*
+	 * Returns true if any of the given intents are external,
+	 * e.g. for an Activity not defined in the manifest of the
+	 * application
+	 */
 	private boolean isExternal(Intent... intents) {
 		for (Intent intent : intents) {
 			List<ResolveInfo> activities = getPackageManager()
